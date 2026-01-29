@@ -21,9 +21,12 @@ private:
     unsigned long int previousMillis;
 
     bool prepare = false;
+    bool lampUsage = false;
 
     uint16_t timeCounter;
     uint16_t metronomeTimeCounter = 0;
+    uint16_t focusLampUsageCounter = 0;
+
 public:
     Enlarger(Display& d, Buzzer& b, Exposure& e);
     ~Enlarger();
@@ -35,6 +38,9 @@ public:
     Lamp getState();
     void switchOn();
     void switchOff();
+
+    void runFocusLampUsageCounter();
+    uint16_t getFocusLampUsageCounter();
     
     void runMetronome();
     void stopMetronome();
@@ -45,6 +51,9 @@ public:
     
     void setPrepare(bool p);
     bool getPrepare();
+
+    void setLampUsage(bool lu);
+    bool getLampUsage();
 };
 
 

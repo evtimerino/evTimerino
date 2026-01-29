@@ -12,6 +12,10 @@ void Buzzer::exposure() {
     if (state == Tone::ON) tone(BUZZER_PIN, 500, 100);
 }
 
+void Buzzer::metronome() {
+    tone(BUZZER_PIN, 500, 100);
+}
+
 void Buzzer::endExposure() {
     tone(BUZZER_PIN, 300, 120);
     delay(120);

@@ -7,8 +7,9 @@ Storage::~Storage() {}
 
 
 void Storage::load() {
-    preferences.begin("data", true);
+    preferences.begin("data", false);
     enlarger.setPrepare(preferences.getBool("prepare", false));
+    enlarger.setLampUsage(preferences.getBool("lampUsage", false));
     display.updateBrightness(preferences.getInt("brightness", 0));
     uint8_t safelightState = preferences.getInt("safelight", 0);
     switch (safelightState)
@@ -53,6 +54,10 @@ void Storage::load() {
     default:
         break;
     }
+    lampUsageHoursCounter = preferences.getUInt("LUHours", 0);
+    lampUsageMinutesCounter = preferences.getUInt("LUMinutes", 0);
+    lampUsageSecondsCounter = preferences.getUInt("LUSeconds", 0);
+    lampUsageTenthsCounter = preferences.getUInt("LUTenth", 0);
     preferences.end();
 }
 
@@ -61,6 +66,7 @@ void Storage::save() {
     preferences.begin("data", false);
     preferences.putInt("precision", exposure.getPrecisionIdx());
     preferences.putBool("prepare", enlarger.getPrepare());
+    preferences.putBool("lampUsage", enlarger.getLampUsage());
     preferences.putInt("brightness", display.getBrightnessLevel());
     switch (enlarger.getSafelight())
     {
@@ -101,5 +107,56 @@ void Storage::save() {
     default:
         break;
     }
+    preferences.end();
+}
+
+uint16_t Storage::getLampUsageHours() {
+    return lampUsageHoursCounter;
+}
+
+uint8_t Storage::getLampUsageMinutes() {
+    return lampUsageMinutesCounter;
+}
+
+void Storage::saveLampUsage(uint16_t usage) {
+    preferences.begin("data", false);
+    uint8_t minutes = usage / 600;
+    uint8_t seconds = usage % 600;
+    uint8_t tenths = seconds % 10;
+    if (lampUsageTenthsCounter + tenths >= 10) {
+        lampUsageSecondsCounter++;
+        lampUsageTenthsCounter = (lampUsageTenthsCounter + tenths) - 10;
+    } else {
+        lampUsageTenthsCounter += tenths;
+    }
+    if (lampUsageSecondsCounter + seconds >= 60) {
+        lampUsageMinutesCounter++;
+        lampUsageSecondsCounter = (lampUsageSecondsCounter + seconds) - 60;
+    } else {
+        lampUsageSecondsCounter += seconds;
+    }
+    if (lampUsageMinutesCounter + minutes >= 60) {
+        lampUsageHoursCounter++;
+        lampUsageMinutesCounter = (lampUsageMinutesCounter + minutes) - 60;
+    } else {
+        lampUsageMinutesCounter += minutes;
+    }
+    preferences.putUInt("LUHours", lampUsageHoursCounter);
+    preferences.putUInt("LUMinutes", lampUsageMinutesCounter);
+    preferences.putUInt("LUSeconds", lampUsageSecondsCounter);
+    preferences.putUInt("LUTenth", lampUsageTenthsCounter);
+    preferences.end();
+}
+
+void Storage::resetLampUsage() {
+    preferences.begin("data", false);
+    lampUsageHoursCounter = 0;
+    lampUsageMinutesCounter = 0;
+    lampUsageSecondsCounter = 0;
+    lampUsageTenthsCounter = 0;
+    preferences.putUInt("LUHours", lampUsageHoursCounter);
+    preferences.putUInt("LUMinutes", lampUsageMinutesCounter);
+    preferences.putUInt("LUSeconds", lampUsageSecondsCounter);
+    preferences.putUInt("LUTenth", lampUsageTenthsCounter);
     preferences.end();
 }

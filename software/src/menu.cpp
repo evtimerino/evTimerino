@@ -15,6 +15,8 @@ namespace TimerMenu {
     uint16_t buzzerCurrentSelection = 0;
     uint8_t preparePreviousSelection = 0;
     uint16_t prepareCurrentSelection = 0;
+    uint8_t lampUsagePreviousSelection = 0;
+    uint16_t lampUsageCurrentSelection = 0;
 
     uint8_t previousBrightness = 0;
     uint8_t currentBrightness = 0;
@@ -84,6 +86,19 @@ namespace TimerMenu {
         return prepare[index];
     }
 
+    // LAMP USAGE
+
+    static const char *lampUsage[] = { 
+    "off", "on"};
+  
+    uint16_t lampUsage_get_cnt(void *data) {
+        return sizeof(lampUsage)/sizeof(*lampUsage);
+    }
+
+    const char *lampUsage_get_str(void *data, uint16_t index) {
+        return lampUsage[index];
+    }
+
 
     uint8_t muiHrule(mui_t *ui, uint8_t msg)
     {
@@ -115,7 +130,7 @@ namespace TimerMenu {
         MUIF_U8G2_U16_LIST("A3", &safelightCurrentSelection, NULL, safelight_get_str, safelight_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
         MUIF_U8G2_U16_LIST("A4", &buzzerCurrentSelection, NULL, buzzer_get_str, buzzer_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
         MUIF_U8G2_U16_LIST("A5", &prepareCurrentSelection, NULL, prepare_get_str, prepare_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-
+        MUIF_U8G2_U16_LIST("A6", &lampUsageCurrentSelection, NULL, lampUsage_get_str, lampUsage_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
     };
 
     fds_t fds_data[] = 
@@ -132,6 +147,7 @@ namespace TimerMenu {
             MUI_13 "Safelight|"
             MUI_14 "Buzzer|"
             MUI_15 "Prepare|"
+            MUI_16 "Lamp Usage|"
             )
         MUI_XYA("GC", 5, 25, 0) 
         MUI_XYA("GC", 5, 37, 1) 
@@ -180,6 +196,13 @@ namespace TimerMenu {
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
         MUI_XYA("A5",45, 40, 50)
+        
+        MUI_FORM(16)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Lamp Usage")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYA("A6",45, 40, 50)
     ;
 
 
@@ -200,6 +223,15 @@ namespace TimerMenu {
         } else {
             prepareCurrentSelection = 1;
             preparePreviousSelection = 1;
+        }
+
+        if (!enlarger.getLampUsage())
+        {
+            lampUsageCurrentSelection = 0;
+            lampUsagePreviousSelection = 0;
+        } else {
+            lampUsageCurrentSelection = 1;
+            lampUsagePreviousSelection = 1;
         }
 
         switch (enlarger.getSafelight())
@@ -376,6 +408,22 @@ namespace TimerMenu {
                 break;
             }
             preparePreviousSelection = prepareCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (lampUsageCurrentSelection != lampUsagePreviousSelection) {
+            switch (lampUsageCurrentSelection)
+            {
+            case 0:
+                enlarger.setLampUsage(false);
+                break;
+            case 1:
+                enlarger.setLampUsage(true);
+                break;
+            default:
+                break;
+            }
+            lampUsagePreviousSelection = lampUsageCurrentSelection;
             isUpdate = true;
         }
     }

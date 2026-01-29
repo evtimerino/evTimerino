@@ -76,7 +76,7 @@ void Enlarger::runMetronome() {
         metronomeTimeCounter++;    
         display.drawMetronome(metronomeTimeCounter);
         if (metronomeTimeCounter % 10 == 0) {
-            buzzer.exposure();
+            buzzer.metronome();
         }
     }
 }
@@ -117,3 +117,27 @@ void Enlarger::setPrepare(bool p) {
 bool Enlarger::getPrepare() {
     return prepare;
 }
+
+void Enlarger::setLampUsage(bool lu) {
+    lampUsage = lu;
+}
+
+bool Enlarger::getLampUsage() {
+    return lampUsage;
+}
+
+void Enlarger::runFocusLampUsageCounter() {
+    currentMillis = millis();
+    
+    if ((currentMillis - previousMillis) >= 100 ) {
+        previousMillis = currentMillis;
+        focusLampUsageCounter++;    
+    }
+}
+
+uint16_t Enlarger::getFocusLampUsageCounter() {
+    uint16_t counter = focusLampUsageCounter;
+    focusLampUsageCounter = 0;
+    return counter;
+}
+

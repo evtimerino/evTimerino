@@ -13,6 +13,7 @@ public:
     ~Buzzer();
     
     void exposure();
+    void metronome();
     void endExposure();
     void doubleBuzz();
     void tripleBuzz();

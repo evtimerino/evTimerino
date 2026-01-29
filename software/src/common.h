@@ -20,7 +20,7 @@
 #define TESTSTRIP_PIN D7
 
 
-#define EVENTS 26
+#define EVENTS 50
 
 enum class Event {
     NO_EVENT,
@@ -37,11 +37,13 @@ enum class Event {
     LONGPRESS_ADJ,
     LONGPRESS_TESTSTRIP,
     LONGPRESS_MENU,
+    LONGPRESS_UP,
     MOVE_TO_MAIN,
     MOVE_TO_PREPARE,
     MOVE_TO_MENU,
     MOVE_TO_PAUSE,
     MOVE_TO_TESTSTRIP,
+    MOVE_TO_LAMPUSAGE,
 };
 
 enum class State {
@@ -53,7 +55,8 @@ enum class State {
     PREPARE = 5,
     METRONOME = 6,
     PAUSE = 7,
-    COUNT = 8,
+    LAMPUSAGE = 8,
+    COUNT = 9,
 };
 
 enum class Mode {
@@ -94,6 +97,11 @@ enum class Tone {
 enum class Lamp {
     ON,
     OFF,
+};
+
+enum class LampUsage {
+    OFF,
+    ON,
 };
 
 #endif

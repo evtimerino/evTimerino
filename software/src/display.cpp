@@ -407,6 +407,25 @@ void Display::drawMetronome(uint16_t timeCounter) {
     oled.sendBuffer();
 }
 
+void Display::drawLampUsage(uint16_t hours, uint8_t minutes) {
+    oled.clearBuffer();
+    oled.drawStr(0, 64, "LAMP USAGE");
+
+    uint8_t hour = hours % 10;
+    uint8_t tenHours = (hours / 10) % 10;
+    uint8_t hundredHours = (hours / 100) % 10;
+    drawDigit(102, 0, hour);
+    if (hours > 9) drawDigit(66, 0, tenHours);
+    if (hours > 99) drawDigit(34, 0, hundredHours);
+
+    if (minutes < 9) drawSmallDigit(119, 47, minutes);
+    else {
+        drawSmallDigit(119, 47, minutes % 10);
+        drawSmallDigit(105, 47, minutes / 10);
+    }
+    oled.sendBuffer();
+}
+
 void Display::drawAdj(uint8_t x, uint8_t y, uint8_t value) {
     switch (value)
     {

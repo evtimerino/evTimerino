@@ -68,6 +68,9 @@ Event Keypad::fetchKeypadEvent() {
         if (state == Button::LONG_PRESS) {
             switch (i)
             {
+            case UP:
+                newEvent = Event::LONGPRESS_UP;
+                break;
             case FOCUS:
                 newEvent = Event::LONGPRESS_FOCUS;
                 break;
