@@ -19,7 +19,7 @@
 |![up](/docs/images/up.png)|Increase the exposure time||
 |![down](/docs/images/down.png)| Decrease the exposure time||
 |![adjustment](/docs/images/adjustments.png)|Move to the next adjustment| Save new adjustment|
-|![exit](/docs/images/exit.png) | Return to the main mode | Remove adjustment|
+|![exit](/images/exit.png) | Return to the main mode | Remove adjustment|
 
 ## Menu mode
 |Icon|Function|
