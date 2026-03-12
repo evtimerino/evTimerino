@@ -52,7 +52,7 @@ public:
     void drawMain(uint16_t timeCounter, uint8_t precision, uint8_t dodgeCount, uint8_t burnCount, bool prepare);
     void drawAdjustment(Adjustment type, uint16_t timeCounter, uint8_t value, uint8_t area);
     void drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number);
-    void drawTestStrip(Teststrip mode, uint16_t timeCounter, uint8_t testStripIdx);
+    void drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStripIdx);
     void drawTestStripSplitGrade(uint16_t timeCounter, uint8_t testStripIdx);
     void drawPrecision(uint8_t precision);
     void drawExposure(uint16_t timeCounter);

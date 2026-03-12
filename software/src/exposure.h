@@ -32,6 +32,8 @@ private:
     int8_t steps = 24;
     uint8_t precision = 6;
     uint8_t precisionIdx = 3;
+    uint8_t precisionMultiplier = 4;
+
     
     uint8_t size;
     uint16_t dodgeTimeCounters;
@@ -45,8 +47,8 @@ private:
     uint8_t position = 0;
     void updateAdjustments();
 
-    uint8_t teststripSteps = 0;
-    Teststrip teststripMode = Teststrip::SEPARATE;
+    int8_t teststripSteps = 0;
+    Teststrip teststripMode = Teststrip::SEPARATE_A;
 
     public:
     Exposure(Buzzer& b);
@@ -85,7 +87,7 @@ private:
     uint16_t getTestStripTimeCounter();
     void resetTestStrip();
     void testStripNext();
-    uint8_t getTestStripSteps();
+    int8_t getTestStripSteps();
     void setTestStripMode(Teststrip m);
     void resetBaseTime();
     void switchBaseTime();
@@ -94,6 +96,8 @@ private:
     uint8_t getNewAdjustmentValue();
     uint8_t getPrecisionIdx();
     uint8_t getSize();
+    void setStartTime(uint8_t st);
+    uint8_t getPrecisionMultiplier();
 };
 
 #endif

@@ -54,6 +54,7 @@ public:
 
     void setLampUsage(bool lu);
     bool getLampUsage();
+
 };
 
 

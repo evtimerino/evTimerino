@@ -78,9 +78,11 @@ enum class Adjustment {
 };
 
 enum class Teststrip {
-  SEPARATE,
+  SEPARATE_A,
+  SEPARATE_B,
   SPLIT_GRADE,
-  INCREMENTAL,
+  INCREMENTAL_A,
+  INCREMENTAL_B,
 };
 
 enum class Safelight {

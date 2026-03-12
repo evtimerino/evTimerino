@@ -274,18 +274,24 @@ void Display::drawMain(uint16_t timeCounter, uint8_t precision, uint8_t dodgeCou
     
 }
 
-void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, uint8_t testStripIdx) {
+void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStripIdx) {
     oled.clearBuffer();
     switch (mode)
     {
-    case Teststrip::SEPARATE:
-        oled.drawStr(0, 64, "SEPARATE TS");
+    case Teststrip::SEPARATE_A:
+        oled.drawStr(0, 64, "SEPARATE A");
+        break;
+    case Teststrip::SEPARATE_B:
+        oled.drawStr(0, 64, "SEPARATE B");
         break;
     case Teststrip::SPLIT_GRADE:
-        oled.drawStr(0, 64, "SPLIT TS");
+        oled.drawStr(0, 64, "SPLIT GRADE");
         break;
-    case Teststrip::INCREMENTAL:
-        oled.drawStr(0, 64, "INCREMENTAL TS");
+    case Teststrip::INCREMENTAL_A:
+        oled.drawStr(0, 64, "INCREMENTAL A");
+        break;
+    case Teststrip::INCREMENTAL_B:
+        oled.drawStr(0, 64, "INCREMENTAL B");
         break;
     default:
         break;
@@ -295,8 +301,16 @@ void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, uint8_t testSt
     uint8_t tenSeconds = (timeCounter / 100) % 10;
     uint8_t hundredSeconds = (timeCounter / 1000) % 10;
 
-    uint8_t digit = testStripIdx % 10;
-    uint8_t double_digit = (testStripIdx / 10) % 10;
+    uint8_t digit = 0;
+    uint8_t double_digit = 0;
+    
+    if ((mode == Teststrip::SEPARATE_B || mode == Teststrip::INCREMENTAL_B) && testStripIdx < 0) {
+        digit = -testStripIdx;
+        drawSign(107, 51, false);
+    } else {
+        digit = testStripIdx % 10;
+        double_digit = (testStripIdx / 10) % 10;
+    }
 
     drawDigit(102, 0, tenth);
     if (timeCounter <= 9) drawDigit(66, 0, 0);

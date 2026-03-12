@@ -12,6 +12,21 @@ void Storage::load() {
     enlarger.setLampUsage(preferences.getBool("lampUsage", false));
     display.updateBrightness(preferences.getInt("brightness", 0));
     uint8_t safelightState = preferences.getInt("safelight", 0);
+    uint8_t startTime = preferences.getInt("startTime", 1);
+    switch (startTime)
+    {
+    case 0:
+        exposure.setStartTime(3);
+        break;
+    case 1:
+        exposure.setStartTime(4);
+        break;
+    case 2:
+        exposure.setStartTime(5);
+        break;
+    default:
+        break;
+    }
     switch (safelightState)
     {
     case 0:
@@ -43,13 +58,19 @@ void Storage::load() {
     switch (testStripState)
     {
     case 0:
-        exposure.setTestStripMode(Teststrip::SEPARATE);
+        exposure.setTestStripMode(Teststrip::SEPARATE_A);
         break;
     case 1:
-        exposure.setTestStripMode(Teststrip::SPLIT_GRADE);
+        exposure.setTestStripMode(Teststrip::INCREMENTAL_A);
         break;
     case 2:
-        exposure.setTestStripMode(Teststrip::INCREMENTAL);
+        exposure.setTestStripMode(Teststrip::SPLIT_GRADE);
+        break;
+    case 3:
+        exposure.setTestStripMode(Teststrip::SEPARATE_B);
+        break;
+    case 4:
+        exposure.setTestStripMode(Teststrip::INCREMENTAL_B);
         break;
     default:
         break;
@@ -68,6 +89,20 @@ void Storage::save() {
     preferences.putBool("prepare", enlarger.getPrepare());
     preferences.putBool("lampUsage", enlarger.getLampUsage());
     preferences.putInt("brightness", display.getBrightnessLevel());
+    switch (exposure.getPrecisionMultiplier())
+    {
+    case 3:
+        preferences.putInt("startTime", 0);
+        break;
+    case 4:
+        preferences.putInt("startTime", 1);
+        break;
+    case 5:
+        preferences.putInt("startTime", 2);
+        break;
+    default:
+        break;
+    }
     switch (enlarger.getSafelight())
     {
     case Safelight::OFF:
@@ -95,14 +130,20 @@ void Storage::save() {
     }
     switch (exposure.getTestStripMode())
     {
-    case Teststrip::SEPARATE:
+    case Teststrip::SEPARATE_A:
         preferences.putInt("teststrip", 0);
         break;
-    case Teststrip::SPLIT_GRADE:
+    case Teststrip::INCREMENTAL_A:
         preferences.putInt("teststrip", 1);
         break;
-    case Teststrip::INCREMENTAL:
+    case Teststrip::SPLIT_GRADE:
         preferences.putInt("teststrip", 2);
+        break;
+    case Teststrip::SEPARATE_B:
+        preferences.putInt("teststrip", 3);
+        break;
+    case Teststrip::INCREMENTAL_B:
+        preferences.putInt("teststrip", 4);
         break;
     default:
         break;
@@ -135,7 +176,7 @@ void Storage::saveLampUsage(uint16_t usage) {
     } else {
         lampUsageSecondsCounter += seconds;
     }
-    if (lampUsageMinutesCounter + minutes >= 60) {
+    if (lampUsageMinutesCounter + minutes >= 60 && lampUsageHoursCounter < 999) {
         lampUsageHoursCounter++;
         lampUsageMinutesCounter = (lampUsageMinutesCounter + minutes) - 60;
     } else {

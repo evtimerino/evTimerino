@@ -378,7 +378,21 @@ void Exposure::updateAdjustments() {
 
 void Exposure::reset() {
     clear();
-    baseTimeCounter = baseTimeCounterAdjusted = 160;
+    switch (precisionMultiplier)
+    {
+    case 3:
+        baseTimeCounter = 80;
+        break;
+    case 4:
+        baseTimeCounter = 160;
+        break;
+    case 5:
+        baseTimeCounter = 320;
+        break;
+    default:
+        break;
+    }
+    baseTimeCounterAdjusted = baseTimeCounter;
 }
 
 bool Exposure::getBaseTime() {
@@ -470,15 +484,19 @@ void Exposure::remove() {
 void Exposure::setPrecision(uint8_t idx) {
     precision = precisions[idx];
     precisionIdx = idx;
-    steps = precision * 4;
+    steps = precision * precisionMultiplier;
 }
 
 void Exposure::testStripNext() {
+    if ((teststripMode == Teststrip::SEPARATE_A || teststripMode == Teststrip::INCREMENTAL_A) && teststripSteps == 3) {
+        teststripSteps = -3;
+        return;
+    }
     teststripSteps++;
 }
 
 uint16_t Exposure::getTestStripTimeCounter() {
-    if (teststripMode == Teststrip::SEPARATE) {
+    if (teststripMode == Teststrip::SEPARATE_B || teststripMode == Teststrip::SEPARATE_A) {
         float power = ((float)steps + teststripSteps) / (float)precision;
         return lrint(10*pow(2.0f,power));
     }
@@ -490,18 +508,51 @@ uint16_t Exposure::getTestStripTimeCounter() {
         uint16_t newTime = lrint(10*pow(2.0f,power));
         return newTime - baseTimeCounter;
     }
-    if (teststripSteps == 0) return baseTimeCounter;
-    float power = ((float)steps + teststripSteps) / (float)precision;
-    uint16_t newTime = lrint(10*pow(2.0f,power));
-    return newTime - baseTimeCounter;
-
+    if (teststripMode == Teststrip::INCREMENTAL_B) {
+        if (teststripSteps == 0) return baseTimeCounter;
+        float power = ((float)steps + teststripSteps) / (float)precision;
+        uint16_t newTime = lrint(10*pow(2.0f,power));
+        if (teststripSteps >= 2) {
+            power = ((float)steps + teststripSteps-1) / (float)precision;
+            uint16_t prevTime = lrint(10*pow(2.0f,power));
+            return (newTime - baseTimeCounter) - (prevTime - baseTimeCounter);
+        }
+        return newTime - baseTimeCounter;
+    }
+    if (teststripMode == Teststrip::INCREMENTAL_A) {
+        if (teststripSteps == -3) {
+            float power = ((float)steps + teststripSteps) / (float)precision;
+            return lrint(10*pow(2.0f,power));
+        }
+        if (teststripSteps >= -2) {
+            float power = ((float)steps - 3) / (float)precision;
+            uint16_t firtTime = lrint(10*pow(2.0f,power));
+            
+            power = ((float)steps + teststripSteps) / (float)precision;
+            uint16_t newTime = lrint(10*pow(2.0f,power));
+            if (teststripSteps > -2) {
+                power = ((float)steps + teststripSteps-1) / (float)precision;
+                uint16_t prevTime = lrint(10*pow(2.0f,power));
+                return (newTime - firtTime) - (prevTime - firtTime);
+            }
+            return newTime - firtTime;
+        }
+    }
+    return 0;
 }
 
 void Exposure::resetTestStrip() {
+    if (teststripMode == Teststrip::SEPARATE_A || teststripMode == Teststrip::INCREMENTAL_A) {
+        teststripSteps = -3;
+        return;
+    }
     teststripSteps = 0;
 }
 
-uint8_t Exposure::getTestStripSteps() {
+int8_t Exposure::getTestStripSteps() {
+    if (teststripMode == Teststrip::SEPARATE_B || teststripMode == Teststrip::INCREMENTAL_A) {
+        return teststripSteps;
+    }
     switch (teststripMode)
     {
     case Teststrip::SPLIT_GRADE:
@@ -541,4 +592,29 @@ Mode Exposure::getMode() {
 
 uint8_t Exposure::getSize() {
     return size;
+}
+
+void Exposure::setStartTime(uint8_t st) {
+    clear();
+    switch (st)
+    {
+    case 3:
+        baseTimeCounter = 80;
+        break;
+    case 4:
+        baseTimeCounter = 160;
+        break;
+    case 5:
+        baseTimeCounter = 320;
+        break;
+    default:
+        break;
+    }
+    baseTimeCounterAdjusted = baseTimeCounter;
+    precisionMultiplier = st;
+    steps = precision * precisionMultiplier;
+}
+
+uint8_t Exposure::getPrecisionMultiplier() {
+    return precisionMultiplier;
 }
