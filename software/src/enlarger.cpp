@@ -2,24 +2,26 @@
 
 Enlarger::Enlarger(Display& d, Buzzer& b, Exposure& e) : display(d), buzzer(b), exposure(e) {
     pinMode(RELAY_PIN, OUTPUT);
-    digitalWrite(RELAY_PIN, LOW);
+    pinMode(SAFELIGHT_PIN, OUTPUT);
+    
+    if (relay == Relay::ACTIVE_LOW) {
+        digitalWrite(RELAY_PIN, HIGH); 
+        digitalWrite(SAFELIGHT_PIN, HIGH);
+    } else {
+        digitalWrite(RELAY_PIN, LOW); 
+        digitalWrite(SAFELIGHT_PIN, LOW);
+    }
 }
 
-Enlarger::~Enlarger()
-{
+Enlarger::~Enlarger() {
 }
 
 void Enlarger::startExposure() {
     timeCounter = exposure.getTimeCounter();
     state = Lamp::ON;
-    if (safelight == Safelight::OFF_ON_EXPOSURE) {
-        digitalWrite(SAFELIGHT_PIN, LOW);
-    }
-    digitalWrite(RELAY_PIN, HIGH);
-}
-
-Lamp Enlarger::getState() {
-    return state;
+    
+    updateRelay();
+    updateSafeLight();
 }
 
 void Enlarger::run() {
@@ -36,30 +38,34 @@ void Enlarger::run() {
 
     if (timeCounter == 0) {
         state = Lamp::OFF;
-        digitalWrite(RELAY_PIN, LOW);
-        if (safelight == Safelight::OFF_ON_EXPOSURE) {
-            digitalWrite(SAFELIGHT_PIN, HIGH);
-        }
+        updateRelay();
+        updateSafeLight();
         buzzer.endExposure();
         exposure.next();
         return;
     }
 }
 
-Lamp Enlarger::getStatePrepare() {
-    uint8_t state = digitalRead(RELAY_PIN);
-    if (state == HIGH) return Lamp::ON;
-    return Lamp::OFF;
-}
-
 void Enlarger::switchOn() {
-    digitalWrite(RELAY_PIN, HIGH);
     state = Lamp::ON;
+    updateRelay();
+    updateSafeLight(); 
 }
 
 void Enlarger::switchOff() {
-    digitalWrite(RELAY_PIN, LOW);
     state = Lamp::OFF;
+    updateRelay();
+    updateSafeLight();
+}
+
+Lamp Enlarger::getState() {
+    return state;
+}
+
+Lamp Enlarger::getStatePrepare() {
+    if (relay == Relay::ACTIVE_LOW && digitalRead(RELAY_PIN) == LOW) return Lamp::ON;
+    if (relay == Relay::ACTIVE_HIGH && digitalRead(RELAY_PIN) == HIGH) return Lamp::ON;
+    return Lamp::OFF;
 }
 
 uint16_t Enlarger::getMetronomeTimeCounter() {
@@ -67,9 +73,7 @@ uint16_t Enlarger::getMetronomeTimeCounter() {
 }
 
 void Enlarger::runMetronome() {
-
     currentMillis = millis();
-    
     if ((currentMillis - previousMillis) >= 100 ) {
         previousMillis = currentMillis;
         if (metronomeTimeCounter == 9999) metronomeTimeCounter = 0;
@@ -89,21 +93,40 @@ void Enlarger::stopMetronome() {
 }
 
 void Enlarger::setSafelight(Safelight sl) {
-    switch (sl)
+    safelight = sl;
+    updateSafeLight(); 
+}
+
+void Enlarger::updateSafeLight() {
+    switch (safelight)
     {
     case Safelight::OFF:
-        digitalWrite(SAFELIGHT_PIN, LOW);
-        break;
-    case Safelight::OFF_ON_EXPOSURE:
-        digitalWrite(SAFELIGHT_PIN, HIGH);
+        if (relay == Relay::ACTIVE_LOW) digitalWrite(SAFELIGHT_PIN, HIGH);
+        if (relay == Relay::ACTIVE_HIGH) digitalWrite(SAFELIGHT_PIN, LOW);
         break;
     case Safelight::ALWAYS_ON:
-        digitalWrite(SAFELIGHT_PIN, HIGH);
+        if (relay == Relay::ACTIVE_LOW) digitalWrite(SAFELIGHT_PIN, LOW);
+        if (relay == Relay::ACTIVE_HIGH) digitalWrite(SAFELIGHT_PIN, HIGH);
+        break;
+    case Safelight::OFF_ON_EXPOSURE:
+        if (state == Lamp::ON) {
+            if (relay == Relay::ACTIVE_LOW) digitalWrite(SAFELIGHT_PIN, HIGH);
+            if (relay == Relay::ACTIVE_HIGH) digitalWrite(SAFELIGHT_PIN, LOW);
+        } else {
+            if (relay == Relay::ACTIVE_LOW) digitalWrite(SAFELIGHT_PIN, LOW);
+            if (relay == Relay::ACTIVE_HIGH) digitalWrite(SAFELIGHT_PIN, HIGH);
+        }
         break;
     default:
         break;
     }
-    safelight = sl;
+}
+
+void Enlarger::updateRelay() {
+    if (state == Lamp::ON && relay == Relay::ACTIVE_LOW) digitalWrite(RELAY_PIN, LOW);
+    if (state == Lamp::ON && relay == Relay::ACTIVE_HIGH) digitalWrite(RELAY_PIN, HIGH);
+    if (state == Lamp::OFF && relay == Relay::ACTIVE_LOW) digitalWrite(RELAY_PIN, HIGH);
+    if (state == Lamp::OFF && relay == Relay::ACTIVE_HIGH) digitalWrite(RELAY_PIN, LOW);
 }
 
 Safelight Enlarger::getSafelight() {
@@ -128,7 +151,6 @@ bool Enlarger::getLampUsage() {
 
 void Enlarger::runFocusLampUsageCounter() {
     currentMillis = millis();
-    
     if ((currentMillis - previousMillis) >= 100 ) {
         previousMillis = currentMillis;
         focusLampUsageCounter++;    
@@ -140,4 +162,3 @@ uint16_t Enlarger::getFocusLampUsageCounter() {
     focusLampUsageCounter = 0;
     return counter;
 }
-

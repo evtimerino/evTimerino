@@ -5,8 +5,7 @@
 
 #define BUZZER_PIN A2
 #define RELAY_PIN A6
-#define SAFELIGHT_PIN 17
-#define SWITCH_PIN 18
+#define SAFELIGHT_PIN A7
 #define FOOTSWITCH_PIN A3
 #define FOOTSWITCH2_PIN D6
 
@@ -58,6 +57,11 @@ enum class State {
     PAUSE = 7,
     LAMPUSAGE = 8,
     COUNT = 9,
+};
+
+enum class Relay {
+  ACTIVE_LOW,
+  ACTIVE_HIGH,
 };
 
 enum class Mode {

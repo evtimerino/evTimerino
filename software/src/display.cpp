@@ -149,8 +149,7 @@ static const unsigned char adjust_count_9p_18_bits[] = {
     0xff, 0xff, 0x03, 0xfe, 0xff, 0x01 };
 
 Display::Display(U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o) : oled(o)
-{    
-    pinMode(SWITCH_PIN, INPUT_PULLUP);
+{
     oled.setFont(u8g2_font_pressstart2p_8r);
 }
 

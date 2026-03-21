@@ -25,6 +25,8 @@ public:
     Button released();
 };
 
+const uint8_t buttonsNumber = 10;
+
 class Keypad 
 {
 private:
@@ -52,7 +54,7 @@ private:
     PushButton adjustment = PushButton(ADJUSTMENT_PIN);
     PushButton exit = PushButton(EXIT_PIN);
     PushButton teststrip = PushButton(TESTSTRIP_PIN);
-    PushButton buttons[10] = {focus, start, footswitch, footswitch2, up, down, precision, adjustment, exit, teststrip}; 
+    PushButton buttons[buttonsNumber] = {focus, start, footswitch, footswitch2, up, down, precision, adjustment, exit, teststrip}; 
 public:
     Event fetchKeypadEvent();
     void tick();

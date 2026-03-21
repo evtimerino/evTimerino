@@ -55,7 +55,7 @@ Keypad::Keypad() {}
 Keypad::~Keypad() {}
 
 void Keypad::tick(){
-    for (uint8_t i = 0; i < 9; i++) {
+    for (uint8_t i = 0; i < buttonsNumber; i++) {
         buttons[i].scan();
         buttons[i].scanLongPress();
     }
@@ -63,7 +63,7 @@ void Keypad::tick(){
 
 Event Keypad::fetchKeypadEvent() {
     Event newEvent = Event::NO_EVENT;
-    for (uint8_t i = 0; i < 9; i++) {
+    for (uint8_t i = 0; i < buttonsNumber; i++) {
         Button state = buttons[i].released();
         if (state == Button::LONG_PRESS) {
             switch (i)

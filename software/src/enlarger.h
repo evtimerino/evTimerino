@@ -6,6 +6,8 @@
 #ifndef ENLARGER_H
 #define ENLARGER_H
 
+const Relay relay = Relay::ACTIVE_LOW;
+
 class Enlarger
 {
 private:
@@ -26,6 +28,9 @@ private:
     uint16_t timeCounter;
     uint16_t metronomeTimeCounter = 0;
     uint16_t focusLampUsageCounter = 0;
+
+    void updateRelay();
+    void updateSafeLight();
 
 public:
     Enlarger(Display& d, Buzzer& b, Exposure& e);
