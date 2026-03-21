@@ -8,6 +8,7 @@
 #define SAFELIGHT_PIN 17
 #define SWITCH_PIN 18
 #define FOOTSWITCH_PIN A3
+#define FOOTSWITCH2_PIN D6
 
 
 #define FOCUS_PIN A1

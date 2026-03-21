@@ -33,6 +33,7 @@ private:
         FOCUS,
         START,
         FOOTSWITCH,
+        FOOTSWITCH2,
         UP,
         DOWN,
         MENU,
@@ -44,13 +45,14 @@ private:
     PushButton focus = PushButton(FOCUS_PIN);
     PushButton start = PushButton(START_PIN);
     PushButton footswitch = PushButton(FOOTSWITCH_PIN);
+    PushButton footswitch2 = PushButton(FOOTSWITCH2_PIN);
     PushButton up = PushButton(UP_PIN);
     PushButton down = PushButton(DOWN_PIN);
     PushButton precision = PushButton(MENU_PIN);
     PushButton adjustment = PushButton(ADJUSTMENT_PIN);
     PushButton exit = PushButton(EXIT_PIN);
     PushButton teststrip = PushButton(TESTSTRIP_PIN);
-    PushButton buttons[9] = {focus, start, footswitch, up, down, precision, adjustment, exit, teststrip}; 
+    PushButton buttons[10] = {focus, start, footswitch, footswitch2, up, down, precision, adjustment, exit, teststrip}; 
 public:
     Event fetchKeypadEvent();
     void tick();

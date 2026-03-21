@@ -165,6 +165,7 @@ namespace TimerMenu {
             MUI_15 "Buzzer|"
             MUI_16 "Prepare|"
             MUI_17 "Lamp Usage|"
+            MUI_18 "Firmware Version|"
             )
         MUI_XYA("GC", 5, 25, 0) 
         MUI_XYA("GC", 5, 37, 1) 
@@ -227,6 +228,13 @@ namespace TimerMenu {
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
         MUI_XYA("A6",45, 40, 50)
+
+        MUI_FORM(18)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Firmware version")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(45, 40, "1.0.0")
     ;
 
 
