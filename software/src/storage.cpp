@@ -59,9 +59,11 @@ void Storage::load() {
     {
     case 0:
         exposure.setTestStripMode(Teststrip::SEPARATE_A);
+        exposure.resetTestStrip();
         break;
     case 1:
         exposure.setTestStripMode(Teststrip::INCREMENTAL_A);
+        exposure.resetTestStrip();
         break;
     case 2:
         exposure.setTestStripMode(Teststrip::SPLIT_GRADE);

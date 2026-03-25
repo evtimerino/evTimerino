@@ -303,7 +303,7 @@ void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStr
     uint8_t digit = 0;
     uint8_t double_digit = 0;
     
-    if ((mode == Teststrip::SEPARATE_B || mode == Teststrip::INCREMENTAL_B) && testStripIdx < 0) {
+    if ((mode == Teststrip::SEPARATE_A || mode == Teststrip::INCREMENTAL_A) && testStripIdx < 0) {
         digit = -testStripIdx;
         drawSign(107, 51, false);
     } else {

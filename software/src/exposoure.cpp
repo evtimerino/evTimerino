@@ -550,7 +550,7 @@ void Exposure::resetTestStrip() {
 }
 
 int8_t Exposure::getTestStripSteps() {
-    if (teststripMode == Teststrip::SEPARATE_B || teststripMode == Teststrip::INCREMENTAL_A) {
+    if (teststripMode == Teststrip::SEPARATE_A || teststripMode == Teststrip::INCREMENTAL_A) {
         return teststripSteps;
     }
     switch (teststripMode)
