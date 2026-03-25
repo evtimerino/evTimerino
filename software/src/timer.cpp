@@ -252,6 +252,10 @@ void Timer::state_pause_run() {
         if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
         if (exposure.getMode() == Mode::TESTSTRIP) insertEvent(Event::MOVE_TO_TESTSTRIP);
     }
+    if (nextEvent == Event::RELEASED_EXIT && exposure.getMode() == Mode::EXPOSURE) {
+        exposure.restart();
+        insertEvent(Event::MOVE_TO_MAIN);
+    }
 }
 
 void Timer::state_lampusage_run() {

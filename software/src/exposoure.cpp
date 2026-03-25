@@ -40,6 +40,14 @@ void Exposure::clear() {
     resetNewAdj();
 }
 
+void Exposure::restart() {
+    baseTime = true;
+    if (head != nullptr) {
+        itr = head;
+        position = 0;
+    }
+}
+
 void Exposure::setAdjustmentUp() {
     if (itr != nullptr) {
         if (itr->type == Adjustment::BURN) {

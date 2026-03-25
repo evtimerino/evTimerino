@@ -59,6 +59,7 @@ private:
     void remove();
     void reset();
     void resetNewAdj();
+    void restart();
     uint16_t getTimeCounter();
     uint16_t getBaseTimeCounter();
     uint8_t getValue();
