@@ -145,8 +145,8 @@ namespace TimerMenu {
         MUIF_U8G2_U16_LIST("A3", &safelightCurrentSelection, NULL, safelight_get_str, safelight_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
         MUIF_U8G2_U16_LIST("A4", &startTimeCurrentSelection, NULL, start_time_get_str, start_time_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
         MUIF_U8G2_U16_LIST("A5", &buzzerCurrentSelection, NULL, buzzer_get_str, buzzer_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A5", &prepareCurrentSelection, NULL, prepare_get_str, prepare_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A6", &lampUsageCurrentSelection, NULL, lampUsage_get_str, lampUsage_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
+        MUIF_U8G2_U16_LIST("A6", &prepareCurrentSelection, NULL, prepare_get_str, prepare_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
+        MUIF_U8G2_U16_LIST("A7", &lampUsageCurrentSelection, NULL, lampUsage_get_str, lampUsage_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
     };
 
     fds_t fds_data[] = 
@@ -220,21 +220,21 @@ namespace TimerMenu {
         MUI_LABEL(5, 8, "Prepare")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A5",45, 40, 50)
+        MUI_XYA("A6",45, 40, 50)
         
         MUI_FORM(17)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Lamp Usage")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A6",45, 40, 50)
+        MUI_XYA("A7",45, 40, 50)
 
         MUI_FORM(18)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Firmware version")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_LABEL(45, 40, "1.0.0")
+        MUI_LABEL(45, 40, "1.0.1")
     ;
 
 
