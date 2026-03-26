@@ -68,6 +68,10 @@ Lamp Enlarger::getStatePrepare() {
     return Lamp::OFF;
 }
 
+uint16_t Enlarger::getTimeCounter() {
+    return timeCounter;
+}
+
 uint16_t Enlarger::getMetronomeTimeCounter() {
     return metronomeTimeCounter;
 }

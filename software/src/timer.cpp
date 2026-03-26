@@ -253,6 +253,7 @@ void Timer::state_pause_run() {
         if (exposure.getMode() == Mode::TESTSTRIP) insertEvent(Event::MOVE_TO_TESTSTRIP);
     }
     if (nextEvent == Event::RELEASED_EXIT && exposure.getMode() == Mode::EXPOSURE) {
+        storage.saveLampUsage(enlarger.getTimeCounter());
         exposure.restart();
         insertEvent(Event::MOVE_TO_MAIN);
     }

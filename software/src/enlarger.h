@@ -45,6 +45,7 @@ public:
     void switchOff();
 
     void runFocusLampUsageCounter();
+    uint16_t getTimeCounter();
     uint16_t getFocusLampUsageCounter();
     
     void runMetronome();
