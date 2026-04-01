@@ -388,6 +388,9 @@ void Exposure::reset() {
     clear();
     switch (precisionMultiplier)
     {
+    case 2:
+        baseTimeCounter = 40;
+        break;
     case 3:
         baseTimeCounter = 80;
         break;
@@ -396,6 +399,9 @@ void Exposure::reset() {
         break;
     case 5:
         baseTimeCounter = 320;
+        break;
+    case 6:
+        baseTimeCounter = 640;
         break;
     default:
         break;
@@ -602,24 +608,13 @@ uint8_t Exposure::getSize() {
     return size;
 }
 
-void Exposure::setStartTime(uint8_t st) {
-    clear();
-    switch (st)
-    {
-    case 3:
-        baseTimeCounter = 80;
-        break;
-    case 4:
-        baseTimeCounter = 160;
-        break;
-    case 5:
-        baseTimeCounter = 320;
-        break;
-    default:
-        break;
-    }
-    baseTimeCounterAdjusted = baseTimeCounter;
+void Exposure::setPrecisionMultiplier(uint8_t s) {
+    precisionMultiplier = s;
+}
+
+void Exposure::setStartTime(uint8_t st, bool runtime) {
     precisionMultiplier = st;
+    reset();
     steps = precision * precisionMultiplier;
 }
 

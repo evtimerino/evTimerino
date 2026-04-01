@@ -97,8 +97,9 @@ private:
     uint8_t getNewAdjustmentValue();
     uint8_t getPrecisionIdx();
     uint8_t getSize();
-    void setStartTime(uint8_t st);
+    void setStartTime(uint8_t st, bool runtime = false);
     uint8_t getPrecisionMultiplier();
+    void setPrecisionMultiplier(uint8_t s);
 };
 
 #endif

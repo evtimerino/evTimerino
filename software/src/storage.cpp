@@ -16,13 +16,19 @@ void Storage::load() {
     switch (startTime)
     {
     case 0:
-        exposure.setStartTime(3);
+        exposure.setStartTime(2);
         break;
     case 1:
-        exposure.setStartTime(4);
+        exposure.setStartTime(3);
         break;
     case 2:
+        exposure.setStartTime(4);
+        break;
+    case 3:
         exposure.setStartTime(5);
+        break;
+    case 4:
+        exposure.setStartTime(6);
         break;
     default:
         break;
@@ -93,14 +99,20 @@ void Storage::save() {
     preferences.putInt("brightness", display.getBrightnessLevel());
     switch (exposure.getPrecisionMultiplier())
     {
-    case 3:
+    case 2:
         preferences.putInt("startTime", 0);
         break;
-    case 4:
+    case 3:
         preferences.putInt("startTime", 1);
         break;
-    case 5:
+    case 4:
         preferences.putInt("startTime", 2);
+        break;
+    case 5:
+        preferences.putInt("startTime", 3);
+        break;
+    case 6:
+        preferences.putInt("startTime", 4);
         break;
     default:
         break;

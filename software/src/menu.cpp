@@ -65,7 +65,7 @@ namespace TimerMenu {
     // START TIME
 
     static const char *startTime[] = { 
-    "8", "16", "32"};
+    "4", "8", "16", "32", "64"};
   
     uint16_t start_time_get_cnt(void *data) {
         return sizeof(startTime)/sizeof(*startTime);
@@ -307,7 +307,7 @@ namespace TimerMenu {
             break;
         default:
             break;
-        }
+       }
         switch (buzzer.getState())
         {
         case Tone::ON:
@@ -323,17 +323,25 @@ namespace TimerMenu {
         }
         switch (exposure.getPrecisionMultiplier())
         {
-        case 3:
+        case 2:
             startTimePreviousSelection = 0;
             startTimeCurrentSelection = 0;
             break;
-        case 4:
+        case 3:
             startTimePreviousSelection = 1;
             startTimeCurrentSelection = 1;
             break;
-        case 5:
+        case 4:
             startTimePreviousSelection = 2;
             startTimeCurrentSelection = 2;
+            break;
+        case 5:
+            startTimePreviousSelection = 3;
+            startTimeCurrentSelection = 3;
+            break;
+        case 6:
+            startTimePreviousSelection = 4;
+            startTimeCurrentSelection = 4;
             break;
         default:
             break;
@@ -448,13 +456,19 @@ namespace TimerMenu {
             switch (startTimeCurrentSelection)
             {
             case 0:
-                exposure.setStartTime(3);
+                exposure.setPrecisionMultiplier(2);
                 break;
             case 1:
-                exposure.setStartTime(4);
+                exposure.setPrecisionMultiplier(3);
                 break;
             case 2:
-                exposure.setStartTime(5);
+                exposure.setPrecisionMultiplier(4);
+                break;
+            case 3:
+                exposure.setPrecisionMultiplier(5);
+                break;
+            case 4:
+                exposure.setPrecisionMultiplier(6);
                 break;
             default:
                 break;
