@@ -439,6 +439,46 @@ void Display::drawLampUsage(uint16_t hours, uint8_t minutes) {
     oled.sendBuffer();
 }
 
+void Display::drawSavedSettings() {
+    oled.clearBuffer();
+    oled.drawStr(35, 30, "SETTINGS");
+    oled.drawStr(45, 40, "SAVED");
+    oled.sendBuffer();
+    delay(800);
+}
+
+void Display::drawExposureRestart() {
+    oled.clearBuffer();
+    oled.drawStr(35, 30, "EXPOSURE");
+    oled.drawStr(40, 40, "RESTART");
+    oled.sendBuffer();
+    delay(800);
+}
+
+void Display::drawAdjustmentAdded() {
+    oled.clearBuffer();
+    oled.drawStr(30, 30, "ADJUSTMENT");
+    oled.drawStr(45, 40, "ADDED");
+    oled.sendBuffer();
+    delay(800);
+}
+
+void Display::drawAdjustmentRemoved() {
+    oled.clearBuffer();
+    oled.drawStr(30, 30, "ADJUSTMENT");
+    oled.drawStr(40, 40, "REMOVED");
+    oled.sendBuffer();
+    delay(800);
+}
+
+void Display::drawLampUsageRestart() {
+    oled.clearBuffer();
+    oled.drawStr(35, 30, "LAMP USAGE");
+    oled.drawStr(40, 40, "RESTART");
+    oled.sendBuffer();
+    delay(800);
+}
+
 void Display::drawAdj(uint8_t x, uint8_t y, uint8_t value) {
     switch (value)
     {

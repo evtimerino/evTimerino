@@ -109,10 +109,12 @@ void Timer::state_main_run() {
     case Event::LONGPRESS_EXIT:
         exposure.clear();
         buzzer.doubleBuzz();
+        display.drawExposureRestart();
         break;
     case Event::LONGPRESS_MENU:
         storage.save();
         buzzer.doubleBuzz();
+        display.drawSavedSettings();
         break;
     case Event::RELEASED_MENU:
         if (exposure.getBaseTime()) insertEvent(Event::MOVE_TO_MENU);
@@ -149,6 +151,7 @@ void Timer::state_adjustment_run() {
     case Event::LONGPRESS_ADJ:
         buzzer.doubleBuzz();
         exposure.saveAdjustment();
+        display.drawAdjustmentAdded();
         break;
     case Event::RELEASED_ADJUSTMENT:
         exposure.nextAdjustment();
@@ -160,6 +163,7 @@ void Timer::state_adjustment_run() {
     case Event::LONGPRESS_EXIT:
         exposure.remove();
         buzzer.doubleBuzz();
+        display.drawAdjustmentRemoved();
         break;
     default:
         break;
@@ -269,6 +273,7 @@ void Timer::state_lampusage_run() {
     case Event::LONGPRESS_EXIT:
         storage.resetLampUsage();
         buzzer.doubleBuzz();
+        display.drawLampUsageRestart();
         break;
     default:
         break;

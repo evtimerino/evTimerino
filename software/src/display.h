@@ -61,6 +61,13 @@ public:
     void drawPrepare();
     void drawFocus();
     void drawPause();
+
+    void drawSavedSettings();
+    void drawExposureRestart();
+    void drawAdjustmentAdded();
+    void drawAdjustmentRemoved();
+    void drawLampUsageRestart();
+
     void powerSave(bool activate);
     void clearDisplay();
     void menuSelectionUp();
