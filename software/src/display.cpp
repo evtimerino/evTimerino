@@ -318,8 +318,14 @@ void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStr
     if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
     
-    drawSmallDigit(119, 47, digit);
-    if (testStripIdx > 9) drawSmallDigit(105, 47, double_digit);
+    if (mode == Teststrip::INCREMENTAL_B && testStripIdx == 0) {
+        oled.setFont(u8g2_font_VCR_OSD_mu);
+        oled.drawStr(117, 64, "B");
+        oled.setFont(u8g2_font_pressstart2p_8r);
+    } else {
+        drawSmallDigit(119, 47, digit);
+        if (testStripIdx > 9) drawSmallDigit(105, 47, double_digit);
+    }
     
     oled.sendBuffer();
 }

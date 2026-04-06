@@ -571,6 +571,8 @@ int8_t Exposure::getTestStripSteps() {
     {
     case Teststrip::SPLIT_GRADE:
         return (teststripSteps / 2) + 1;
+    case Teststrip::INCREMENTAL_B:
+        return teststripSteps;
     default:
         return teststripSteps + 1;
     }
