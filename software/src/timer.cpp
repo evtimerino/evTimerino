@@ -185,6 +185,9 @@ void Timer::state_teststrip_run(){
             return;
         }
         break;
+    case Event::RELEASED_TESTSTRIP:
+        exposure.switchTestStripMode();
+        break;
     case Event::RELEASED_EXIT:
         exposure.resetTestStrip();
         exposure.resetBaseTime();

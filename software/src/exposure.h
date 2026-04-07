@@ -100,6 +100,7 @@ private:
     void setStartTime(uint8_t st, bool runtime = false);
     uint8_t getPrecisionMultiplier();
     void setPrecisionMultiplier(uint8_t s);
+    void switchTestStripMode();
 };
 
 #endif
