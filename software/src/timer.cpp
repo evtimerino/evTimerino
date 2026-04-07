@@ -17,6 +17,7 @@ Timer::voidfunc Timer::run[] = {
     &Timer::state_metronome_run,
     &Timer::state_pause_run,
     &Timer::state_lampusage_run,
+    &Timer::state_precision_run,
 };
 
 void Timer::init(){
@@ -274,6 +275,25 @@ void Timer::state_lampusage_run() {
         storage.resetLampUsage();
         buzzer.doubleBuzz();
         display.drawLampUsageRestart();
+        break;
+    default:
+        break;
+    }
+}
+
+void Timer::state_precision_run() {
+    display.drawPrecision(exposure.getNewPrecision());
+    switch (nextEvent)
+    {
+    case Event::RELEASED_UP:
+        exposure.setPrecisionUp();
+        break;
+    case Event::RELEASED_DOWN:
+        exposure.setPrecisionDown();
+        break;
+    case Event::RELEASED_EXIT:
+        exposure.updatePrecision();
+        insertEvent(Event::MOVE_TO_MAIN);
         break;
     default:
         break;

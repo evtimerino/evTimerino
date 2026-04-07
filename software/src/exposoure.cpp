@@ -657,3 +657,29 @@ void Exposure::switchTestStripMode() {
         break;
     }
 }
+
+void Exposure::setPrecisionUp() {
+    if (newPrecisionIdx < 9) {
+        newPrecisionIdx++;
+    }
+}
+
+void Exposure::setPrecisionDown() {
+    if (newPrecisionIdx > 0) {
+        newPrecisionIdx--;
+    }
+}
+
+uint8_t Exposure::getNewPrecision() {
+    return precisions[newPrecisionIdx];
+}
+
+void Exposure::updatePrecision() {
+    if ((precisionIdx > newPrecisionIdx) || (precisions[newPrecisionIdx] % precisions[precisionIdx]) != 0) {
+            clear();
+        }
+    if (precisionIdx != newPrecisionIdx) {
+        precisionIdx = newPrecisionIdx;
+        setPrecision(precisionIdx);
+    }
+}

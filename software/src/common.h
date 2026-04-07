@@ -20,7 +20,7 @@
 #define TESTSTRIP_PIN D7
 
 
-#define EVENTS 50
+#define EVENTS 53
 
 enum class Event {
     NO_EVENT,
@@ -56,7 +56,8 @@ enum class State {
     METRONOME = 6,
     PAUSE = 7,
     LAMPUSAGE = 8,
-    COUNT = 9,
+    PRECISION = 9,
+    COUNT = 10,
 };
 
 enum class Relay {
