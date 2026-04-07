@@ -79,10 +79,6 @@ void Timer::state_main_run() {
     switch (nextEvent)
     {
     case Event::LONGPRESS_UP:
-        if (enlarger.getLampUsage()) {
-            insertEvent(Event::MOVE_TO_LAMPUSAGE);
-            buzzer.doubleBuzz();
-        }
         break;
     case Event::RELEASED_START:
         if (enlarger.getState() == Lamp::OFF) {
@@ -112,9 +108,10 @@ void Timer::state_main_run() {
         display.drawExposureRestart();
         break;
     case Event::LONGPRESS_MENU:
-        storage.save();
-        buzzer.doubleBuzz();
-        display.drawSavedSettings();
+        if (enlarger.getLampUsage()) {
+            insertEvent(Event::MOVE_TO_LAMPUSAGE);
+            buzzer.doubleBuzz();
+        }
         break;
     case Event::RELEASED_MENU:
         if (exposure.getBaseTime()) insertEvent(Event::MOVE_TO_MENU);

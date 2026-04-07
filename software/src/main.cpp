@@ -22,7 +22,7 @@ Buzzer buzzer = Buzzer();
 Exposure exposure = Exposure(buzzer);
 Enlarger enlarger = Enlarger(oled, buzzer, exposure);
 Storage storage = Storage(oled, preferences, exposure, buzzer, enlarger);
-TimerMenu::Menu menu(keypad, exposure, u8g2, enlarger, buzzer, oled);
+TimerMenu::Menu menu(keypad, exposure, u8g2, enlarger, buzzer, oled, storage);
 Timer timer = Timer(oled, keypad, buzzer, exposure, enlarger, menu, storage);
 
 void setup() {
