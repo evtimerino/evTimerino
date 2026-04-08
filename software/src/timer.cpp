@@ -103,6 +103,10 @@ void Timer::state_main_run() {
     case Event::RELEASED_DOWN:
         exposure.setBaseExposureDown();
         break;
+    case Event::LONGPRESS_DOWN:
+        exposure.splitSteps();
+        buzzer.doubleBuzz();
+        break;
     case Event::LONGPRESS_EXIT:
         exposure.clear();
         buzzer.doubleBuzz();
