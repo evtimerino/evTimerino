@@ -685,10 +685,19 @@ uint8_t Exposure::getNewPrecision() {
 void Exposure::updatePrecision() {
     if ((precisionIdx > newPrecisionIdx) || (precisions[newPrecisionIdx] % precisions[precisionIdx]) != 0) {
             clear();
-        }
+    }
     if (precisionIdx != newPrecisionIdx) {
         precisionIdx = newPrecisionIdx;
         setPrecision(precisionIdx);
+    }
+    if (head != nullptr) {
+        node *newItr = head;
+        while (newItr != nullptr)
+        {
+            newItr->value = newItr->value * 2;
+            newItr = newItr->next;
+        }
+        updateAdjustments();
     }
 }
 
