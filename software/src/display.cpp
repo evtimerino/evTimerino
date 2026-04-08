@@ -445,6 +445,29 @@ void Display::drawLampUsage(uint16_t hours, uint8_t minutes) {
     oled.sendBuffer();
 }
 
+void Display::drawLinear(uint16_t timeCounter, LinearPrecision precision) {
+    oled.clearBuffer();
+    if (precision == LinearPrecision::SECONDS) {
+        oled.drawStr(0, 64, "SECONDS");
+    } else {
+        oled.drawStr(0, 64, "TENTHS");
+    }
+
+    uint8_t tenth = timeCounter % 10;
+    uint8_t seconds = (timeCounter / 10) % 10;
+    uint8_t tenSeconds = (timeCounter / 100) % 10;
+    uint8_t hundredSeconds = (timeCounter / 1000) % 10;
+
+    drawDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawDigit(66, 0, 0);
+    if (timeCounter > 9) drawDigit(66, 0, seconds);
+    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    oled.drawBox(95, 0 + 39, 4, 4);
+
+    oled.sendBuffer();
+}
+
 void Display::drawSavedSettings() {
     oled.clearBuffer();
     oled.drawStr(35, 30, "SETTINGS");

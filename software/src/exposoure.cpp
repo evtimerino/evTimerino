@@ -41,10 +41,15 @@ void Exposure::clear() {
 }
 
 void Exposure::restart() {
-    baseTime = true;
-    if (head != nullptr) {
-        itr = head;
-        position = 0;
+    if (mode == Mode::EXPOSURE) {
+        baseTime = true;
+        if (head != nullptr) {
+            itr = head;
+            position = 0;
+        }
+    }
+    if (mode == Mode::LINEAR) {
+        getLinearTimeCounter();
     }
 }
 
@@ -260,6 +265,9 @@ uint16_t Exposure::getTimeCounter() {
         break;
     case Mode::TESTSTRIP:
         return getTestStripTimeCounter();
+        break;
+    case Mode::LINEAR:
+        return getLinearTimeCounter();
         break;
     default:
         break;
@@ -682,4 +690,44 @@ void Exposure::updatePrecision() {
         precisionIdx = newPrecisionIdx;
         setPrecision(precisionIdx);
     }
+}
+
+void Exposure::setLinearUp() {
+    if (linearPrecision == LinearPrecision::TENTHS && linearBaseTimeCounter < 9998) {
+        linearBaseTimeCounter += 1;
+    }
+
+    if (linearPrecision == LinearPrecision::SECONDS && linearBaseTimeCounter < 9989) {
+        linearBaseTimeCounter += 10;
+    }
+}
+
+void Exposure::setLinearDown() {
+    if (linearPrecision == LinearPrecision::TENTHS && linearBaseTimeCounter > 1) {
+        linearBaseTimeCounter -= 1;
+    }
+
+    if (linearPrecision == LinearPrecision::SECONDS && linearBaseTimeCounter > 10) {
+        linearBaseTimeCounter -= 10;
+    }
+}
+
+void Exposure::switchLinearPrecision() {
+    if (linearPrecision == LinearPrecision::SECONDS) {
+        linearPrecision = LinearPrecision::TENTHS;
+    } else {
+        linearPrecision = LinearPrecision::SECONDS;
+    }
+}
+
+void Exposure::resetLinearTimeCounter() {
+    linearBaseTimeCounter = 100;
+}
+
+uint16_t Exposure::getLinearTimeCounter() {
+    return linearBaseTimeCounter;
+}
+
+LinearPrecision Exposure::getLinearPrecision() {
+    return linearPrecision;
 }

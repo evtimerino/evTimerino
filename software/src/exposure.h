@@ -51,6 +51,9 @@ private:
     int8_t teststripSteps = 0;
     Teststrip teststripMode = Teststrip::SEPARATE_A;
 
+    uint16_t linearBaseTimeCounter = 100;
+    LinearPrecision linearPrecision = LinearPrecision::SECONDS;
+
     public:
     Exposure(Buzzer& b);
     ~Exposure();
@@ -106,6 +109,12 @@ private:
     void setPrecisionDown();
     void updatePrecision();
     uint8_t getNewPrecision();
+    void setLinearUp();
+    void setLinearDown();
+    void switchLinearPrecision();
+    void resetLinearTimeCounter();
+    uint16_t getLinearTimeCounter();
+    LinearPrecision getLinearPrecision();
 };
 
 #endif

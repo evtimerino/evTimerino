@@ -71,6 +71,9 @@ Event Keypad::fetchKeypadEvent() {
             case UP:
                 newEvent = Event::LONGPRESS_UP;
                 break;
+            case DOWN:
+                newEvent = Event::LONGPRESS_DOWN;
+                break;
             case FOCUS:
                 newEvent = Event::LONGPRESS_FOCUS;
                 break;
