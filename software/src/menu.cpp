@@ -169,7 +169,7 @@ namespace TimerMenu {
         MUI_LABEL(5, 8, "Firmware version")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_LABEL(45, 40, "1.0.2")
+        MUI_LABEL(45, 40, "1.1.0")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
     ;
 
