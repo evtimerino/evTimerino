@@ -80,6 +80,8 @@ private:
         {State::METRONOME, Event::MOVE_TO_LINEAR, State::LINEAR},
         {State::LINEAR, Event::MOVE_TO_PAUSE, State::PAUSE},
         {State::PAUSE, Event::MOVE_TO_LINEAR, State::LINEAR},
+        {State::LINEAR, Event::RELEASED_FOCUS, State::FOCUS},
+        {State::FOCUS, Event::MOVE_TO_LINEAR, State::LINEAR},
     };
 
     typedef void (Timer::* voidfunc)();

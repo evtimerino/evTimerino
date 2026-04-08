@@ -135,7 +135,8 @@ void Timer::state_focus_run() {
     if (nextEvent == Event::RELEASED_FOCUS) {
         enlarger.switchOff();
         if (enlarger.getLampUsage()) storage.saveLampUsage(enlarger.getFocusLampUsageCounter());
-        insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::LINEAR) insertEvent(Event::MOVE_TO_LINEAR);
         return;
     }
 }
