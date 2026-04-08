@@ -269,6 +269,9 @@ uint16_t Exposure::getTimeCounter() {
     case Mode::LINEAR:
         return getLinearTimeCounter();
         break;
+    case Mode::ADJUSTMENT:
+        return newAdj->timeCounter;
+        break;
     default:
         break;
     }
@@ -279,6 +282,11 @@ bool Exposure::isNewAdjustment() {
     if (itr == nullptr) {
         return true;
     }
+    return false;
+}
+
+bool Exposure::isNewAdjustmentBurn() {
+    if (newAdj->type == Adjustment::BURN) return true;
     return false;
 }
 

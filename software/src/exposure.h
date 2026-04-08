@@ -87,6 +87,7 @@ private:
     uint8_t getAdjustmentArea();
     Mode getMode();
     bool isNewAdjustment();
+    bool isNewAdjustmentBurn();
     bool getBaseTime();
     void setBaseTime();
     void setPrecision(uint8_t i);
