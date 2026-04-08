@@ -17,6 +17,8 @@ Timer::voidfunc Timer::run[] = {
     &Timer::state_metronome_run,
     &Timer::state_pause_run,
     &Timer::state_lampusage_run,
+    &Timer::state_precision_run,
+    &Timer::state_linear_run,
 };
 
 void Timer::init(){
@@ -65,7 +67,13 @@ void Timer :: processEvent() {
     }
 }
 
-void Timer::state_main_run() {
+void Timer::state_main_run() {    
+    if (enlarger.getLampUsage()) {
+        uint16_t counter = enlarger.getLampUsageCounter(false);
+        if (counter != 0) {
+            storage.saveLampUsage(counter);
+        }
+    }
     if (exposure.getBaseTime() && !prepareState) prepareState = true;
     if (!exposure.getBaseTime() && enlarger.getState() == Lamp::OFF && enlarger.getPrepare() && prepareState) {
         insertEvent(Event::MOVE_TO_PREPARE);
@@ -78,22 +86,11 @@ void Timer::state_main_run() {
 
     switch (nextEvent)
     {
-    case Event::LONGPRESS_UP:
-        if (enlarger.getLampUsage()) {
-            insertEvent(Event::MOVE_TO_LAMPUSAGE);
-            buzzer.doubleBuzz();
-        }
-        break;
     case Event::RELEASED_START:
         if (enlarger.getState() == Lamp::OFF) {
             enlarger.startExposure();
             if (enlarger.getPrepare() && !exposure.getBaseTime()) {
                 prepareState = true;
-            }
-            if (enlarger.getLampUsage() && exposure.getBaseTime()) {
-                storage.saveLampUsage(exposure.getBaseTimeCounter());
-            } else if (enlarger.getLampUsage()) {
-                storage.saveLampUsage(exposure.getAdjustmentTimeCounter());
             }
         } else {
             enlarger.switchOff();
@@ -112,9 +109,15 @@ void Timer::state_main_run() {
         display.drawExposureRestart();
         break;
     case Event::LONGPRESS_MENU:
-        storage.save();
+        if (enlarger.getLampUsage()) {
+            insertEvent(Event::MOVE_TO_LAMPUSAGE);
+            buzzer.doubleBuzz();
+        }
+        break;
+    case Event::LONGPRESS_ADJ:
+        exposure.setMode(Mode::LINEAR);
         buzzer.doubleBuzz();
-        display.drawSavedSettings();
+        insertEvent(Event::MOVE_TO_LINEAR);
         break;
     case Event::RELEASED_MENU:
         if (exposure.getBaseTime()) insertEvent(Event::MOVE_TO_MENU);
@@ -188,6 +191,9 @@ void Timer::state_teststrip_run(){
             return;
         }
         break;
+    case Event::RELEASED_TESTSTRIP:
+        exposure.switchTestStripMode();
+        break;
     case Event::RELEASED_EXIT:
         exposure.resetTestStrip();
         exposure.resetBaseTime();
@@ -235,7 +241,9 @@ void Timer::state_metronome_run() {
         }
         break;
     case Event::RELEASED_EXIT:
-        if (enlarger.getState() == Lamp::OFF) insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::LINEAR) {
+            insertEvent(Event::MOVE_TO_LINEAR);
+        } else if (enlarger.getState() == Lamp::OFF) insertEvent(Event::MOVE_TO_MAIN);
         break;
     default:
         break;
@@ -255,11 +263,13 @@ void Timer::state_pause_run() {
         enlarger.switchOn();
         if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
         if (exposure.getMode() == Mode::TESTSTRIP) insertEvent(Event::MOVE_TO_TESTSTRIP);
+        if (exposure.getMode() == Mode::LINEAR) insertEvent(Event::MOVE_TO_LINEAR);
     }
-    if (nextEvent == Event::RELEASED_EXIT && exposure.getMode() == Mode::EXPOSURE) {
-        storage.saveLampUsage(enlarger.getTimeCounter());
+    if (nextEvent == Event::RELEASED_EXIT && (exposure.getMode() == Mode::EXPOSURE || exposure.getMode() == Mode::LINEAR)) {
+        storage.saveLampUsage(enlarger.getLampUsageCounter(true));
         exposure.restart();
-        insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::LINEAR) insertEvent(Event::MOVE_TO_LINEAR);
     }
 }
 
@@ -278,4 +288,67 @@ void Timer::state_lampusage_run() {
     default:
         break;
     }
+}
+
+void Timer::state_precision_run() {
+    display.drawPrecision(exposure.getNewPrecision());
+    switch (nextEvent)
+    {
+    case Event::RELEASED_UP:
+        exposure.setPrecisionUp();
+        break;
+    case Event::RELEASED_DOWN:
+        exposure.setPrecisionDown();
+        break;
+    case Event::RELEASED_EXIT:
+        exposure.updatePrecision();
+        insertEvent(Event::MOVE_TO_MAIN);
+        break;
+    default:
+        break;
+    }
+}
+
+void Timer::state_linear_run() {
+    if (enlarger.getLampUsage()) {
+        uint16_t counter = enlarger.getLampUsageCounter(false);
+        if (counter != 0) {
+            storage.saveLampUsage(counter);
+        }
+    }
+    if (enlarger.getState() == Lamp::OFF) {
+        display.drawLinear(exposure.getLinearTimeCounter(), exposure.getLinearPrecision());
+    }
+    switch (nextEvent)
+    {
+    case Event::RELEASED_START:
+        if (enlarger.getState() == Lamp::OFF) {
+            enlarger.startExposure();
+        } else {
+            enlarger.switchOff();
+            insertEvent(Event::MOVE_TO_PAUSE);
+        }
+        break;
+    case Event::RELEASED_UP:
+        exposure.setLinearUp();
+        break;
+    case Event::RELEASED_DOWN:
+        exposure.setLinearDown();
+        break;
+    case Event::LONGPRESS_DOWN:
+        exposure.resetLinearTimeCounter();
+        buzzer.doubleBuzz();
+        break;
+    case Event::RELEASED_ADJUSTMENT:
+        exposure.switchLinearPrecision();
+        break;
+    case Event::LONGPRESS_EXIT:
+        exposure.setMode(Mode::EXPOSURE);
+        buzzer.doubleBuzz();
+        insertEvent(Event::MOVE_TO_MAIN);
+        break;
+    default:
+        break;
+    }
+    if (enlarger.getState() == Lamp::ON) enlarger.run();
 }

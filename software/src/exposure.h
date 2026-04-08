@@ -28,9 +28,10 @@ private:
     uint16_t baseTimeCounter = 160;
     uint16_t baseTimeCounterAdjusted = 160;
     
-    const uint8_t precisions[8] = {2, 3, 4, 6, 8, 12, 16};
+    const uint8_t precisions[10] = {2, 3, 4, 6, 8, 12, 16, 24, 32, 48};
     int8_t steps = 24;
     uint8_t precision = 6;
+    uint8_t newPrecisionIdx = 3;
     uint8_t precisionIdx = 3;
     uint8_t precisionMultiplier = 4;
 
@@ -49,6 +50,9 @@ private:
 
     int8_t teststripSteps = 0;
     Teststrip teststripMode = Teststrip::SEPARATE_A;
+
+    uint16_t linearBaseTimeCounter = 100;
+    LinearPrecision linearPrecision = LinearPrecision::SECONDS;
 
     public:
     Exposure(Buzzer& b);
@@ -100,6 +104,17 @@ private:
     void setStartTime(uint8_t st, bool runtime = false);
     uint8_t getPrecisionMultiplier();
     void setPrecisionMultiplier(uint8_t s);
+    void switchTestStripMode();
+    void setPrecisionUp();
+    void setPrecisionDown();
+    void updatePrecision();
+    uint8_t getNewPrecision();
+    void setLinearUp();
+    void setLinearDown();
+    void switchLinearPrecision();
+    void resetLinearTimeCounter();
+    uint16_t getLinearTimeCounter();
+    LinearPrecision getLinearPrecision();
 };
 
 #endif

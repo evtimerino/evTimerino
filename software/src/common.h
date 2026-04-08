@@ -20,7 +20,7 @@
 #define TESTSTRIP_PIN D7
 
 
-#define EVENTS 50
+#define EVENTS 53
 
 enum class Event {
     NO_EVENT,
@@ -38,12 +38,14 @@ enum class Event {
     LONGPRESS_TESTSTRIP,
     LONGPRESS_MENU,
     LONGPRESS_UP,
+    LONGPRESS_DOWN,
     MOVE_TO_MAIN,
     MOVE_TO_PREPARE,
     MOVE_TO_MENU,
     MOVE_TO_PAUSE,
     MOVE_TO_TESTSTRIP,
     MOVE_TO_LAMPUSAGE,
+    MOVE_TO_LINEAR,
 };
 
 enum class State {
@@ -56,7 +58,9 @@ enum class State {
     METRONOME = 6,
     PAUSE = 7,
     LAMPUSAGE = 8,
-    COUNT = 9,
+    PRECISION = 9,
+    LINEAR = 10,
+    COUNT = 11,
 };
 
 enum class Relay {
@@ -67,6 +71,7 @@ enum class Relay {
 enum class Mode {
   EXPOSURE,
   TESTSTRIP,
+  LINEAR,
 };
 
 enum class Button {
@@ -109,6 +114,11 @@ enum class Lamp {
 enum class LampUsage {
     OFF,
     ON,
+};
+
+enum class LinearPrecision {
+    SECONDS,
+    TENTHS,
 };
 
 #endif

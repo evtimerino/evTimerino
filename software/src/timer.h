@@ -50,6 +50,8 @@ private:
         {State::PREPARE, Event::NO_EVENT, State::PREPARE},
         {State::LAMPUSAGE, Event::NO_EVENT, State::LAMPUSAGE},
         {State::METRONOME, Event::NO_EVENT, State::METRONOME},
+        {State::PRECISION, Event::NO_EVENT, State::PRECISION},
+        {State::LINEAR, Event::NO_EVENT, State::LINEAR},
         {State::MAIN, Event::RELEASED_FOCUS, State::FOCUS},
         {State::FOCUS, Event::MOVE_TO_MAIN, State::MAIN},
         {State::MAIN, Event::RELEASED_ADJUSTMENT, State::ADJUSTMENT},
@@ -70,6 +72,14 @@ private:
         {State::PAUSE, Event::MOVE_TO_TESTSTRIP, State::TESTSTRIP},
         {State::MAIN, Event::MOVE_TO_LAMPUSAGE, State::LAMPUSAGE},
         {State::LAMPUSAGE, Event::MOVE_TO_MAIN, State::MAIN},
+        {State::MAIN, Event::LONGPRESS_UP, State::PRECISION},
+        {State::PRECISION, Event::MOVE_TO_MAIN, State::MAIN},
+        {State::MAIN, Event::MOVE_TO_LINEAR, State::LINEAR},
+        {State::LINEAR, Event::MOVE_TO_MAIN, State::MAIN},
+        {State::LINEAR, Event::RELEASED_TESTSTRIP, State::METRONOME},
+        {State::METRONOME, Event::MOVE_TO_LINEAR, State::LINEAR},
+        {State::LINEAR, Event::MOVE_TO_PAUSE, State::PAUSE},
+        {State::PAUSE, Event::MOVE_TO_LINEAR, State::LINEAR},
     };
 
     typedef void (Timer::* voidfunc)();
@@ -92,8 +102,10 @@ private:
     void state_focus_run();
     void state_prepare_run();
     void state_metronome_run();
-    void state_lampusage_run();
     void state_pause_run();
+    void state_lampusage_run();
+    void state_precision_run();
+    void state_linear_run();
 };
 
 #endif

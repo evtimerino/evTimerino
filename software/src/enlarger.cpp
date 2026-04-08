@@ -18,6 +18,7 @@ Enlarger::~Enlarger() {
 
 void Enlarger::startExposure() {
     timeCounter = exposure.getTimeCounter();
+    setLampUsageBaseTime(timeCounter);
     state = Lamp::ON;
     
     updateRelay();
@@ -41,7 +42,7 @@ void Enlarger::run() {
         updateRelay();
         updateSafeLight();
         buzzer.endExposure();
-        exposure.next();
+        if (exposure.getMode() != Mode::LINEAR) exposure.next();
         return;
     }
 }
@@ -165,4 +166,22 @@ uint16_t Enlarger::getFocusLampUsageCounter() {
     uint16_t counter = focusLampUsageCounter;
     focusLampUsageCounter = 0;
     return counter;
+}
+
+void Enlarger::setLampUsageBaseTime(uint16_t c) {
+    lampUsageBaseTime = c;
+}
+
+uint16_t Enlarger::getLampUsageCounter(bool pause) {
+    if (pause) {
+        uint16_t counter = lampUsageBaseTime - timeCounter;
+        lampUsageBaseTime = 0;
+        return counter;
+    }
+    if ((state == Lamp::OFF) && lampUsageBaseTime != 0) {
+        uint16_t counter = lampUsageBaseTime;
+        lampUsageBaseTime = 0;
+        return counter;
+    }
+    return 0;
 }

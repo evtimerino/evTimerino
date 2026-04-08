@@ -318,8 +318,14 @@ void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStr
     if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
     
-    drawSmallDigit(119, 47, digit);
-    if (testStripIdx > 9) drawSmallDigit(105, 47, double_digit);
+    if (mode == Teststrip::INCREMENTAL_B && testStripIdx == 0) {
+        oled.setFont(u8g2_font_VCR_OSD_mu);
+        oled.drawStr(117, 64, "B");
+        oled.setFont(u8g2_font_pressstart2p_8r);
+    } else {
+        drawSmallDigit(119, 47, digit);
+        if (testStripIdx > 9) drawSmallDigit(105, 47, double_digit);
+    }
     
     oled.sendBuffer();
 }
@@ -436,6 +442,29 @@ void Display::drawLampUsage(uint16_t hours, uint8_t minutes) {
         drawSmallDigit(119, 47, minutes % 10);
         drawSmallDigit(105, 47, minutes / 10);
     }
+    oled.sendBuffer();
+}
+
+void Display::drawLinear(uint16_t timeCounter, LinearPrecision precision) {
+    oled.clearBuffer();
+    if (precision == LinearPrecision::SECONDS) {
+        oled.drawStr(0, 64, "SECONDS");
+    } else {
+        oled.drawStr(0, 64, "TENTHS");
+    }
+
+    uint8_t tenth = timeCounter % 10;
+    uint8_t seconds = (timeCounter / 10) % 10;
+    uint8_t tenSeconds = (timeCounter / 100) % 10;
+    uint8_t hundredSeconds = (timeCounter / 1000) % 10;
+
+    drawDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawDigit(66, 0, 0);
+    if (timeCounter > 9) drawDigit(66, 0, seconds);
+    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    oled.drawBox(95, 0 + 39, 4, 4);
+
     oled.sendBuffer();
 }
 

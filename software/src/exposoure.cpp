@@ -41,10 +41,15 @@ void Exposure::clear() {
 }
 
 void Exposure::restart() {
-    baseTime = true;
-    if (head != nullptr) {
-        itr = head;
-        position = 0;
+    if (mode == Mode::EXPOSURE) {
+        baseTime = true;
+        if (head != nullptr) {
+            itr = head;
+            position = 0;
+        }
+    }
+    if (mode == Mode::LINEAR) {
+        getLinearTimeCounter();
     }
 }
 
@@ -260,6 +265,9 @@ uint16_t Exposure::getTimeCounter() {
         break;
     case Mode::TESTSTRIP:
         return getTestStripTimeCounter();
+        break;
+    case Mode::LINEAR:
+        return getLinearTimeCounter();
         break;
     default:
         break;
@@ -571,6 +579,8 @@ int8_t Exposure::getTestStripSteps() {
     {
     case Teststrip::SPLIT_GRADE:
         return (teststripSteps / 2) + 1;
+    case Teststrip::INCREMENTAL_B:
+        return teststripSteps;
     default:
         return teststripSteps + 1;
     }
@@ -620,4 +630,104 @@ void Exposure::setStartTime(uint8_t st, bool runtime) {
 
 uint8_t Exposure::getPrecisionMultiplier() {
     return precisionMultiplier;
+}
+
+void Exposure::switchTestStripMode() {
+    if ((teststripMode == Teststrip::INCREMENTAL_A || teststripMode == Teststrip::SEPARATE_A) && teststripSteps != -3) {
+        return;
+    }
+    if ((teststripMode == Teststrip::INCREMENTAL_B || teststripMode == Teststrip::SEPARATE_B || teststripMode == Teststrip::SPLIT_GRADE) && teststripSteps != 0) {
+        return;
+    }
+    switch (teststripMode)
+    {
+    case Teststrip::SEPARATE_A:
+        teststripMode = Teststrip::INCREMENTAL_A;
+        teststripSteps = -3;
+        break;
+    case Teststrip::INCREMENTAL_A:
+        teststripMode = Teststrip::SPLIT_GRADE;
+        teststripSteps = 0;
+        break;
+    case Teststrip::SPLIT_GRADE:
+        teststripMode = Teststrip::SEPARATE_B;
+        teststripSteps = 0;
+        break;        
+    case Teststrip::SEPARATE_B:
+        teststripMode = Teststrip::INCREMENTAL_B;
+        teststripSteps = 0;
+        break;
+    case Teststrip::INCREMENTAL_B:
+        teststripMode = Teststrip::SEPARATE_A;
+        teststripSteps = -3;
+        break;
+    default:
+        break;
+    }
+}
+
+void Exposure::setPrecisionUp() {
+    if (newPrecisionIdx < 9) {
+        newPrecisionIdx++;
+    }
+}
+
+void Exposure::setPrecisionDown() {
+    if (newPrecisionIdx > 0) {
+        newPrecisionIdx--;
+    }
+}
+
+uint8_t Exposure::getNewPrecision() {
+    return precisions[newPrecisionIdx];
+}
+
+void Exposure::updatePrecision() {
+    if ((precisionIdx > newPrecisionIdx) || (precisions[newPrecisionIdx] % precisions[precisionIdx]) != 0) {
+            clear();
+        }
+    if (precisionIdx != newPrecisionIdx) {
+        precisionIdx = newPrecisionIdx;
+        setPrecision(precisionIdx);
+    }
+}
+
+void Exposure::setLinearUp() {
+    if (linearPrecision == LinearPrecision::TENTHS && linearBaseTimeCounter < 9998) {
+        linearBaseTimeCounter += 1;
+    }
+
+    if (linearPrecision == LinearPrecision::SECONDS && linearBaseTimeCounter < 9989) {
+        linearBaseTimeCounter += 10;
+    }
+}
+
+void Exposure::setLinearDown() {
+    if (linearPrecision == LinearPrecision::TENTHS && linearBaseTimeCounter > 1) {
+        linearBaseTimeCounter -= 1;
+    }
+
+    if (linearPrecision == LinearPrecision::SECONDS && linearBaseTimeCounter > 10) {
+        linearBaseTimeCounter -= 10;
+    }
+}
+
+void Exposure::switchLinearPrecision() {
+    if (linearPrecision == LinearPrecision::SECONDS) {
+        linearPrecision = LinearPrecision::TENTHS;
+    } else {
+        linearPrecision = LinearPrecision::SECONDS;
+    }
+}
+
+void Exposure::resetLinearTimeCounter() {
+    linearBaseTimeCounter = 100;
+}
+
+uint16_t Exposure::getLinearTimeCounter() {
+    return linearBaseTimeCounter;
+}
+
+LinearPrecision Exposure::getLinearPrecision() {
+    return linearPrecision;
 }

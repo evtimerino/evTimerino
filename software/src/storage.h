@@ -19,7 +19,7 @@ private:
     Enlarger& enlarger;
 
     uint32_t lampUsageHoursCounter = 0;
-    uint8_t lampUsageMinutesCounter = 0;
+    uint8_t lampUsageMinutesCounter = 1;
     uint32_t lampUsageSecondsCounter = 0;
     uint32_t lampUsageTenthsCounter = 0;
 
@@ -30,8 +30,17 @@ public:
     uint16_t getLampUsageHours();
     uint8_t getLampUsageMinutes();
     void saveLampUsage(uint16_t usage);
+    
+    void storeLampUsage(uint8_t l);
+    void storePrecision(uint8_t p);
+    void storeTestStripMode(uint8_t t);
+    void storeSafelight(uint8_t s);
+    void storeStartTime(uint8_t s);
+    void storeBuzzer(uint8_t b);
+    void storePrepare(uint8_t p);
+    void storeBrightness(uint8_t b);
+    
     void resetLampUsage();
-    void save();
 };
 
 #endif

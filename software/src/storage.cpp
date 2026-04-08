@@ -1,3 +1,4 @@
+#include "common.h"
 #include <storage.h>
 
 Storage::Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l) : display(o), preferences(p), exposure(e), buzzer(b), enlarger(l) {
@@ -8,8 +9,8 @@ Storage::~Storage() {}
 
 void Storage::load() {
     preferences.begin("data", false);
-    enlarger.setPrepare(preferences.getBool("prepare", false));
-    enlarger.setLampUsage(preferences.getBool("lampUsage", false));
+    enlarger.setPrepare(preferences.getInt("prepare", 0));
+    enlarger.setLampUsage(preferences.getInt("lampUsage", 0));
     display.updateBrightness(preferences.getInt("brightness", 0));
     uint8_t safelightState = preferences.getInt("safelight", 0);
     uint8_t startTime = preferences.getInt("startTime", 1);
@@ -51,10 +52,10 @@ void Storage::load() {
     switch (buzzerState)
     {
     case 0:
-        buzzer.setState(Tone::OFF);
+        buzzer.setState(Tone::ON);
         break;
     case 1:
-        buzzer.setState(Tone::ON);
+        buzzer.setState(Tone::OFF);
         break;
     default:
         break;
@@ -87,81 +88,6 @@ void Storage::load() {
     lampUsageMinutesCounter = preferences.getUInt("LUMinutes", 0);
     lampUsageSecondsCounter = preferences.getUInt("LUSeconds", 0);
     lampUsageTenthsCounter = preferences.getUInt("LUTenth", 0);
-    preferences.end();
-}
-
-
-void Storage::save() {
-    preferences.begin("data", false);
-    preferences.putInt("precision", exposure.getPrecisionIdx());
-    preferences.putBool("prepare", enlarger.getPrepare());
-    preferences.putBool("lampUsage", enlarger.getLampUsage());
-    preferences.putInt("brightness", display.getBrightnessLevel());
-    switch (exposure.getPrecisionMultiplier())
-    {
-    case 2:
-        preferences.putInt("startTime", 0);
-        break;
-    case 3:
-        preferences.putInt("startTime", 1);
-        break;
-    case 4:
-        preferences.putInt("startTime", 2);
-        break;
-    case 5:
-        preferences.putInt("startTime", 3);
-        break;
-    case 6:
-        preferences.putInt("startTime", 4);
-        break;
-    default:
-        break;
-    }
-    switch (enlarger.getSafelight())
-    {
-    case Safelight::OFF:
-        preferences.putInt("safelight", 0);
-        break;
-    case Safelight::OFF_ON_EXPOSURE:
-        preferences.putInt("safelight", 1);
-        break;
-    case Safelight::ALWAYS_ON:
-        preferences.putInt("safelight", 2);
-        break;
-    default:
-        break;
-    }
-    switch (buzzer.getState())
-    {
-    case Tone::OFF:
-        preferences.putInt("buzzer", 0);
-        break;
-    case Tone::ON:
-        preferences.putInt("buzzer", 1);
-        break;
-    default:
-        break;
-    }
-    switch (exposure.getTestStripMode())
-    {
-    case Teststrip::SEPARATE_A:
-        preferences.putInt("teststrip", 0);
-        break;
-    case Teststrip::INCREMENTAL_A:
-        preferences.putInt("teststrip", 1);
-        break;
-    case Teststrip::SPLIT_GRADE:
-        preferences.putInt("teststrip", 2);
-        break;
-    case Teststrip::SEPARATE_B:
-        preferences.putInt("teststrip", 3);
-        break;
-    case Teststrip::INCREMENTAL_B:
-        preferences.putInt("teststrip", 4);
-        break;
-    default:
-        break;
-    }
     preferences.end();
 }
 
@@ -200,6 +126,54 @@ void Storage::saveLampUsage(uint16_t usage) {
     preferences.putUInt("LUMinutes", lampUsageMinutesCounter);
     preferences.putUInt("LUSeconds", lampUsageSecondsCounter);
     preferences.putUInt("LUTenth", lampUsageTenthsCounter);
+    preferences.end();
+}
+
+void Storage::storeLampUsage(uint8_t l) {
+    preferences.begin("data", false);
+    preferences.putInt("lampUsage", l);
+    preferences.end();
+}
+
+void Storage::storePrecision(uint8_t p) {
+    preferences.begin("data", false);
+    preferences.putInt("precision", p);
+    preferences.end();
+}
+
+void Storage::storeTestStripMode(uint8_t t) {
+    preferences.begin("data", false);
+    preferences.putInt("teststrip", t);
+    preferences.end();
+}
+
+void Storage::storeSafelight(uint8_t s) {
+    preferences.begin("data", false);
+    preferences.putInt("safelight", s);
+    preferences.end();
+}
+
+void Storage::storeStartTime(uint8_t s) {
+    preferences.begin("data", false);
+    preferences.putInt("startTime", s);
+    preferences.end();
+}
+
+void Storage::storeBuzzer(uint8_t b) {
+    preferences.begin("data", false);
+    preferences.putInt("buzzer", b);
+    preferences.end();
+}
+
+void Storage::storePrepare(uint8_t p) {
+    preferences.begin("data", false);
+    preferences.putInt("prepare", p);
+    preferences.end();
+}
+
+void Storage::storeBrightness(uint8_t b) {
+    preferences.begin("data", false);
+    preferences.putInt("brightness", b);
     preferences.end();
 }
 

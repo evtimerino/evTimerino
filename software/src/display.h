@@ -58,6 +58,7 @@ public:
     void drawExposure(uint16_t timeCounter);
     void drawMetronome(uint16_t timeCounter);
     void drawLampUsage(uint16_t hours, uint8_t minutes);
+    void drawLinear(uint16_t timeCounter, LinearPrecision precision);
     void drawPrepare();
     void drawFocus();
     void drawPause();

@@ -6,113 +6,21 @@ namespace TimerMenu {
     bool isUpdate = false;
 
     uint8_t precisionPreviousSelection = 3;
-    uint16_t precisionCurrentSelection = 3;
+    uint8_t precisionCurrentSelection = 3;
     uint8_t teststripPreviousSelection = 0;
-    uint16_t teststripCurrentSelection = 0;
+    uint8_t teststripCurrentSelection = 0;
     uint8_t safelightPreviousSelection = 0;
-    uint16_t safelightCurrentSelection = 0;
+    uint8_t safelightCurrentSelection = 0;
     uint8_t startTimePreviousSelection = 0;
-    uint16_t startTimeCurrentSelection = 0;
+    uint8_t startTimeCurrentSelection = 0;
     uint8_t buzzerPreviousSelection = 0;
-    uint16_t buzzerCurrentSelection = 0;
+    uint8_t buzzerCurrentSelection = 0;
     uint8_t preparePreviousSelection = 0;
-    uint16_t prepareCurrentSelection = 0;
+    uint8_t prepareCurrentSelection = 0;
     uint8_t lampUsagePreviousSelection = 0;
-    uint16_t lampUsageCurrentSelection = 0;
-
-    uint8_t previousBrightness = 0;
-    uint8_t currentBrightness = 0;
-
-    // FSTOP
-
-    static const char *fstops[] = { 
-    "1/2", "1/3", "1/4", "1/6", "1/8", "1/12", "1/16" };
-  
-    uint16_t fstop_get_cnt(void *data) {
-        return sizeof(fstops)/sizeof(*fstops);
-    }
-    
-    const char *fstop_get_str(void *data, uint16_t index) {
-        return fstops[index];
-    }
-
-    // TESTSTRIP
-
-    static const char *teststrip[] = { 
-    "separate a", "incremental a", "split grade", "separate b", "incremental b"};
-  
-    uint16_t teststrip_get_cnt(void *data) {
-        return sizeof(teststrip)/sizeof(*teststrip);
-    }
-    
-    const char *teststrip_get_str(void *data, uint16_t index) {
-        return teststrip[index];
-    }
-
-    // SAFELIGHT
-
-    static const char *safelight[] = { 
-    "off", "off on exposure", "always on"};
-  
-    uint16_t safelight_get_cnt(void *data) {
-        return sizeof(safelight)/sizeof(*safelight);
-    }
-    
-    const char *safelight_get_str(void *data, uint16_t index) {
-        return safelight[index];
-    }
-
-    // START TIME
-
-    static const char *startTime[] = { 
-    "4", "8", "16", "32", "64"};
-  
-    uint16_t start_time_get_cnt(void *data) {
-        return sizeof(startTime)/sizeof(*startTime);
-    }
-    
-    const char *start_time_get_str(void *data, uint16_t index) {
-        return startTime[index];
-    }
-
-    // BUZZER
-
-    static const char *buzzer[] = { 
-    "on", "off"};
-  
-    uint16_t buzzer_get_cnt(void *data) {
-        return sizeof(buzzer)/sizeof(*buzzer);
-    }
-    
-    const char *buzzer_get_str(void *data, uint16_t index) {
-        return buzzer[index];
-    }
-
-    // PREPARE
-
-    static const char *prepare[] = { 
-    "off", "on"};
-  
-    uint16_t prepare_get_cnt(void *data) {
-        return sizeof(prepare)/sizeof(*prepare);
-    }
-    
-    const char *prepare_get_str(void *data, uint16_t index) {
-        return prepare[index];
-    }
-
-    // LAMP USAGE
-
-    static const char *lampUsage[] = { 
-    "off", "on"};
-  
-    uint16_t lampUsage_get_cnt(void *data) {
-        return sizeof(lampUsage)/sizeof(*lampUsage);
-    }
-
-    const char *lampUsage_get_str(void *data, uint16_t index) {
-        return lampUsage[index];
-    }
+    uint8_t lampUsageCurrentSelection = 0;
+    uint8_t brightnessPreviousSelection = 0;
+    uint8_t brightnessCurrentSelection = 0;
 
 
     uint8_t muiHrule(mui_t *ui, uint8_t msg)
@@ -137,22 +45,22 @@ namespace TimerMenu {
         MUIF_RO("GP", mui_u8g2_goto_data),
         MUIF_BUTTON("GC", mui_u8g2_goto_form_w1_pi),
 
-        MUIF_BUTTON("G1", mui_u8g2_btn_goto_wm_fi),
+        MUIF_BUTTON("G0", mui_u8g2_btn_goto_wm_fi),
 
-        MUIF_U8G2_U16_LIST("A1", &precisionCurrentSelection, NULL, fstop_get_str, fstop_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A2", &teststripCurrentSelection, NULL, teststrip_get_str, teststrip_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U8_MIN_MAX("NR", &currentBrightness, 1, 4, mui_u8g2_u8_min_max_wm_mse_pi),
-        MUIF_U8G2_U16_LIST("A3", &safelightCurrentSelection, NULL, safelight_get_str, safelight_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A4", &startTimeCurrentSelection, NULL, start_time_get_str, start_time_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A5", &buzzerCurrentSelection, NULL, buzzer_get_str, buzzer_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A6", &prepareCurrentSelection, NULL, prepare_get_str, prepare_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
-        MUIF_U8G2_U16_LIST("A7", &lampUsageCurrentSelection, NULL, lampUsage_get_str, lampUsage_get_cnt, mui_u8g2_u16_list_line_wa_mse_pi),
+        MUIF_VARIABLE("RS", &precisionCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RT", &teststripCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RU", &safelightCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RP", &startTimeCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RB", &buzzerCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RE", &prepareCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RC", &lampUsageCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RV", &brightnessCurrentSelection, mui_u8g2_u8_radio_wm_pi),
     };
 
     fds_t fds_data[] = 
         MUI_FORM(1)
         MUI_STYLE(1)
-        MUI_LABEL(5,10, "Menu")
+        MUI_LABEL(5,10, "Settings")
         MUI_XY("HR", 0,13)
         MUI_STYLE(0)
 
@@ -177,112 +85,103 @@ namespace TimerMenu {
         MUI_LABEL(5, 8, "Precision")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A1",45, 40, 50)
+        MUI_XYAT("RS",5, 22, 0 , "1/2")
+        MUI_XYAT("RS",5, 32, 1, "1/3")
+        MUI_XYAT("RS",5, 42, 2, "1/4")
+        MUI_XYAT("RS",5, 52, 3, "1/6")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
     
         MUI_FORM(11)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Test Strip")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A2",45, 40, 50)
-
+        MUI_XYAT("RT", 5, 22, 0, "Separate A")
+        MUI_XYAT("RT", 5, 32, 1, "Incremental A")
+        MUI_XYAT("RT", 5, 42, 2, "Split Grade")
+        MUI_XYAT("RT", 5, 52, 3, "Separate B")
+        MUI_XYAT("RT", 5, 62, 4, "Incremental B")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(12)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Brightness")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XY("NR",70, 40)
+        MUI_XYAT("RV", 5, 22, 0, "Low")
+        MUI_XYAT("RV", 5, 32, 1, "Medium Low")
+        MUI_XYAT("RV", 5, 42, 2, "Medium High")
+        MUI_XYAT("RV", 5, 52, 3, "High")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(13)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Safelight")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A3",45, 40, 50)
+        MUI_XYAT("RU", 5, 22, 0, "Off")
+        MUI_XYAT("RU", 5, 32, 1, "Off on Exposure")
+        MUI_XYAT("RU", 5, 42, 2, "Always On")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(14)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Start Time")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A4",45, 40, 50)
+        MUI_XYAT("RP", 5, 22, 0, "4 sec")
+        MUI_XYAT("RP", 5, 32, 1, "8 sec")
+        MUI_XYAT("RP", 5, 42, 2, "16 sec")
+        MUI_XYAT("RP", 5, 52, 3, "32 sec")
+        MUI_XYAT("RP", 5, 62, 4, "64 sec")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(15)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Buzzer")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A5",45, 40, 50)
+        MUI_XYAT("RB", 5, 22, 0, "Off")
+        MUI_XYAT("RB", 5, 32, 1, "On")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(16)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Prepare")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A6",45, 40, 50)
+        MUI_XYAT("RE", 5, 22, 0, "Off")
+        MUI_XYAT("RE", 5, 32, 1, "On")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
+
         
         MUI_FORM(17)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Lamp Usage")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_XYA("A7",45, 40, 50)
+        MUI_XYAT("RC", 5, 22, 0, "Off")
+        MUI_XYAT("RC", 5, 32, 1, "On")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(18)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Firmware version")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_LABEL(45, 40, "1.0.2")
+        MUI_LABEL(45, 40, "1.1.0")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
     ;
 
 
-    Menu::Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d) : keypad(k), exposure(e), oled(o), enlarger(l), buzzer(b), display(d) {}
-
+    Menu::Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s) : keypad(k), exposure(e), oled(o), enlarger(l), buzzer(b), display(d), storage(s) {}
     Menu::~Menu() {}
 
     void Menu::setup() {
         mui.begin(oled, fds_data, muif_list, sizeof(muif_list)/sizeof(muif_t));
 
-        precisionPreviousSelection = exposure.getPrecisionIdx();
-        precisionCurrentSelection = precisionPreviousSelection;
-
-        if (!enlarger.getPrepare())
-        {
-            prepareCurrentSelection = 0;
-            preparePreviousSelection = 0;
-        } else {
-            prepareCurrentSelection = 1;
-            preparePreviousSelection = 1;
-        }
-
-        if (!enlarger.getLampUsage())
-        {
-            lampUsageCurrentSelection = 0;
-            lampUsagePreviousSelection = 0;
-        } else {
-            lampUsageCurrentSelection = 1;
-            lampUsagePreviousSelection = 1;
-        }
-
-        switch (enlarger.getSafelight())
-        {
-        case Safelight::OFF:
-            safelightPreviousSelection = 0;
-            safelightCurrentSelection = 0;
-            break;
-        case Safelight::OFF_ON_EXPOSURE:
-            safelightPreviousSelection = 1;
-            safelightCurrentSelection = 1;
-            break;
-        case Safelight::ALWAYS_ON:
-            safelightPreviousSelection = 2;
-            safelightCurrentSelection = 2;
-            break;
-        default:
-            break;
-        }
+        precisionCurrentSelection = exposure.getPrecisionIdx();
+        precisionPreviousSelection = precisionCurrentSelection;
         switch (exposure.getTestStripMode())
         {
         case Teststrip::SEPARATE_A:
@@ -307,14 +206,50 @@ namespace TimerMenu {
             break;
         default:
             break;
-       }
+        }
+        switch (enlarger.getSafelight())
+        {
+        case Safelight::OFF:
+            safelightPreviousSelection = 0;
+            safelightCurrentSelection = 0;
+            break;
+        case Safelight::OFF_ON_EXPOSURE:
+            safelightPreviousSelection = 1;
+            safelightCurrentSelection = 1;
+            break;
+        case Safelight::ALWAYS_ON:
+            safelightPreviousSelection = 2;
+            safelightCurrentSelection = 2;
+            break;
+        default:
+            break;
+        }
+
+        if (!enlarger.getPrepare())
+        {
+            prepareCurrentSelection = 0;
+            preparePreviousSelection = 0;
+        } else {
+            prepareCurrentSelection = 1;
+            preparePreviousSelection = 1;
+        }
+
+        if (!enlarger.getLampUsage())
+        {
+            lampUsageCurrentSelection = 0;
+            lampUsagePreviousSelection = 0;
+        } else {
+            lampUsageCurrentSelection = 1;
+            lampUsagePreviousSelection = 1;
+        }
+
         switch (buzzer.getState())
         {
-        case Tone::ON:
+        case Tone::OFF:
             buzzerPreviousSelection = 0;
             buzzerCurrentSelection = 0;
             break;
-        case Tone::OFF:
+        case Tone::ON:
             buzzerPreviousSelection = 1;
             buzzerCurrentSelection = 1;
             break;
@@ -347,8 +282,8 @@ namespace TimerMenu {
             break;
         }
 
-        previousBrightness = display.getBrightnessLevel();
-        currentBrightness = previousBrightness;
+        brightnessCurrentSelection = display.getBrightnessLevel();
+        brightnessPreviousSelection = brightnessCurrentSelection;
     }
 
     void Menu::goToForm(uint8_t id, uint8_t pos) {
@@ -407,6 +342,7 @@ namespace TimerMenu {
             exposure.setPrecision(precisionCurrentSelection);
             exposure.reset();
             precisionPreviousSelection = precisionCurrentSelection;
+            storage.storePrecision(precisionCurrentSelection);
             isUpdate = true;
         }
         if (teststripCurrentSelection != teststripPreviousSelection) {
@@ -430,6 +366,7 @@ namespace TimerMenu {
             default:
                 break;
             }
+            storage.storeTestStripMode(teststripCurrentSelection);
             exposure.resetTestStrip();
             teststripPreviousSelection = teststripCurrentSelection;
             isUpdate = true;
@@ -449,7 +386,8 @@ namespace TimerMenu {
             default:
                 break;
             }
-            safelightPreviousSelection = safelightPreviousSelection;
+            storage.storeSafelight(safelightCurrentSelection);
+            safelightPreviousSelection = safelightCurrentSelection;
             isUpdate = true;
         }
         if (startTimeCurrentSelection != startTimePreviousSelection) {
@@ -473,6 +411,7 @@ namespace TimerMenu {
             default:
                 break;
             }
+            storage.storeStartTime(startTimeCurrentSelection);
             startTimePreviousSelection = startTimeCurrentSelection;
             isUpdate = true;
         }
@@ -480,14 +419,15 @@ namespace TimerMenu {
             switch (buzzerCurrentSelection)
             {
             case 0:
-                buzzer.setState(Tone::ON);
+                buzzer.setState(Tone::OFF);
                 break;
             case 1:
-                buzzer.setState(Tone::OFF);
+                buzzer.setState(Tone::ON);
                 break;
             default:
                 break;
             }
+            storage.storeBuzzer(buzzerCurrentSelection);
             buzzerPreviousSelection = buzzerCurrentSelection;
             isUpdate = true;
         }
@@ -503,6 +443,7 @@ namespace TimerMenu {
             default:
                 break;
             }
+            storage.storePrepare(prepareCurrentSelection);
             preparePreviousSelection = prepareCurrentSelection;
             isUpdate = true;
         }
@@ -514,20 +455,21 @@ namespace TimerMenu {
                 enlarger.setLampUsage(false);
                 break;
             case 1:
-                enlarger.setLampUsage(true);
+                enlarger.setLampUsage(true);          
                 break;
             default:
                 break;
             }
+            storage.storeLampUsage(lampUsageCurrentSelection);
             lampUsagePreviousSelection = lampUsageCurrentSelection;
             isUpdate = true;
         }
     }
 
     void Menu::refreshBrightness() {
-        if (currentBrightness != previousBrightness) {
-            display.updateBrightness(currentBrightness);
-            previousBrightness = currentBrightness;
+        if (brightnessCurrentSelection != brightnessPreviousSelection) {
+            display.updateBrightness(brightnessCurrentSelection);
+            brightnessPreviousSelection = brightnessCurrentSelection;
         }
     }
 }

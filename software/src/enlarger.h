@@ -27,10 +27,12 @@ private:
 
     uint16_t timeCounter;
     uint16_t metronomeTimeCounter = 0;
+    uint16_t lampUsageBaseTime = 0;
     uint16_t focusLampUsageCounter = 0;
 
     void updateRelay();
     void updateSafeLight();
+    void setLampUsageBaseTime(uint16_t c);
 
 public:
     Enlarger(Display& d, Buzzer& b, Exposure& e);
@@ -48,6 +50,7 @@ public:
     uint16_t getTimeCounter();
     uint16_t getFocusLampUsageCounter();
     
+    
     void runMetronome();
     void stopMetronome();
     uint16_t getMetronomeTimeCounter();
@@ -60,6 +63,8 @@ public:
 
     void setLampUsage(bool lu);
     bool getLampUsage();
+
+    uint16_t getLampUsageCounter(bool pause);
 
 };
 
