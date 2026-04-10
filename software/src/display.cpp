@@ -674,19 +674,19 @@ void Display::drawLogo() {
 void Display::updateBrightness(uint8_t level) {
     switch (level)
     {
-    case 1:
+    case 0:
         setSSD1309VcomDeselect(0);
         setSSD1309PreChargePeriod(1, 1);
         break;
-    case 2:
+    case 1:
         setSSD1309VcomDeselect(2);
         setSSD1309PreChargePeriod(4, 4);
         break;
-    case 3:
+    case 2:
         setSSD1309VcomDeselect(4);
         setSSD1309PreChargePeriod(6, 6);
         break;
-    case 4:
+    case 3:
         setSSD1309VcomDeselect(7);
         setSSD1309PreChargePeriod(15, 15);
         break;
