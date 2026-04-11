@@ -72,6 +72,7 @@ enum class Mode {
   EXPOSURE,
   TESTSTRIP,
   LINEAR,
+  ADJUSTMENT,
 };
 
 enum class Button {

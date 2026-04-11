@@ -32,9 +32,8 @@ void Enlarger::run() {
         previousMillis = currentMillis;
         timeCounter--;    
         display.drawExposure(timeCounter);
-        if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime() && timeCounter % 10 == 0) {
-            buzzer.exposure();
-        }
+        if (exposure.getMode() == Mode::LINEAR && timeCounter % 10 == 0) buzzer.exposure();
+        if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime() && timeCounter % 10 == 0) buzzer.exposure();
     }
 
     if (timeCounter == 0) {

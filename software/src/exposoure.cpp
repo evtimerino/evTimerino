@@ -269,6 +269,9 @@ uint16_t Exposure::getTimeCounter() {
     case Mode::LINEAR:
         return getLinearTimeCounter();
         break;
+    case Mode::ADJUSTMENT:
+        return newAdj->timeCounter;
+        break;
     default:
         break;
     }
@@ -279,6 +282,11 @@ bool Exposure::isNewAdjustment() {
     if (itr == nullptr) {
         return true;
     }
+    return false;
+}
+
+bool Exposure::isNewAdjustmentBurn() {
+    if (newAdj->type == Adjustment::BURN) return true;
     return false;
 }
 
@@ -683,12 +691,39 @@ uint8_t Exposure::getNewPrecision() {
 }
 
 void Exposure::updatePrecision() {
-    if ((precisionIdx > newPrecisionIdx) || (precisions[newPrecisionIdx] % precisions[precisionIdx]) != 0) {
-            clear();
-        }
-    if (precisionIdx != newPrecisionIdx) {
+    if (newPrecisionIdx != precisionIdx) {
         precisionIdx = newPrecisionIdx;
         setPrecision(precisionIdx);
+        reset();
+    }
+    if ((precision != 32 || precision != 48) && !splitState) {
+        splitState = true;
+    }
+}
+
+void Exposure::splitSteps() {
+    if (!splitState) {
+        buzzer.tripleBuzz();
+        return;
+    }
+    precisionIdx = precisionIdx + 2;
+    newPrecisionIdx = precisionIdx;
+    precision = precisions[precisionIdx];
+    steps = (steps * 2) + 1;
+    float power = ((float)steps) / (float)precision;
+    baseTimeCounter = lrint(10*pow(2.0f,power));
+    baseTimeCounterAdjusted = baseTimeCounter;
+    if (head != nullptr) {
+        node *newItr = head;
+        while (newItr != nullptr)
+        {
+            newItr->value = newItr->value * 2;
+            newItr = newItr->next;
+        }
+        updateAdjustments();
+    }
+    if (precision == 32 || precision == 48) {
+        splitState = false;
     }
 }
 

@@ -103,6 +103,10 @@ void Timer::state_main_run() {
     case Event::RELEASED_DOWN:
         exposure.setBaseExposureDown();
         break;
+    case Event::LONGPRESS_DOWN:
+        exposure.splitSteps();
+        buzzer.doubleBuzz();
+        break;
     case Event::LONGPRESS_EXIT:
         exposure.clear();
         buzzer.doubleBuzz();
@@ -135,42 +139,60 @@ void Timer::state_focus_run() {
     if (nextEvent == Event::RELEASED_FOCUS) {
         enlarger.switchOff();
         if (enlarger.getLampUsage()) storage.saveLampUsage(enlarger.getFocusLampUsageCounter());
-        insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
+        if (exposure.getMode() == Mode::LINEAR) insertEvent(Event::MOVE_TO_LINEAR);
         return;
     }
 }
 
 void Timer::state_adjustment_run() {
-    if (exposure.isNewAdjustment()) display.drawNewAdjustment(exposure.getNewAdjustmentTimeCounter(), exposure.getNewAdjustmentValue(), exposure.getNewAdjustmentType(), exposure.getSize());
-    else display.drawAdjustment(exposure.getAdjustmentType(), exposure.getAdjustmentTimeCounter(), exposure.getAdjustmentArea(), exposure.getAdjustmentValue());
-    switch (nextEvent)
-    {
-    case Event::RELEASED_DOWN:
-        exposure.setAdjustmentDown();
-        break;
-    case Event::RELEASED_UP:
-        exposure.setAdjustmentUp();
-        break;
-    case Event::LONGPRESS_ADJ:
-        buzzer.doubleBuzz();
-        exposure.saveAdjustment();
-        display.drawAdjustmentAdded();
-        break;
-    case Event::RELEASED_ADJUSTMENT:
-        exposure.nextAdjustment();
-        break;
-    case Event::RELEASED_EXIT:
-        exposure.resetIndex();
-        insertEvent(Event::MOVE_TO_MAIN);
-        break;
-    case Event::LONGPRESS_EXIT:
-        exposure.remove();
-        buzzer.doubleBuzz();
-        display.drawAdjustmentRemoved();
-        break;
-    default:
-        break;
+    if (enlarger.getState() == Lamp::OFF) {
+        if (exposure.isNewAdjustment()) display.drawNewAdjustment(exposure.
+            getNewAdjustmentTimeCounter(), exposure.getNewAdjustmentValue(), exposure.getNewAdjustmentType(), exposure.getSize());
+        else display.drawAdjustment(exposure.getAdjustmentType(), exposure.getAdjustmentTimeCounter(), exposure.getAdjustmentArea(), exposure.getAdjustmentValue());
+        switch (nextEvent)
+        {
+        case Event::RELEASED_DOWN:
+            exposure.setAdjustmentDown();
+            break;
+        case Event::RELEASED_UP:
+            exposure.setAdjustmentUp();
+            break;
+        case Event::LONGPRESS_ADJ:
+            buzzer.doubleBuzz();
+            exposure.saveAdjustment();
+            display.drawAdjustmentAdded();
+            break;
+        case Event::RELEASED_ADJUSTMENT:
+            exposure.nextAdjustment();
+            break;
+        case Event::RELEASED_EXIT:
+            exposure.resetIndex();
+            exposure.setMode(Mode::EXPOSURE);
+            insertEvent(Event::MOVE_TO_MAIN);
+            break;
+        case Event::RELEASED_START:
+            exposure.setMode(Mode::ADJUSTMENT);
+            if (exposure.isNewAdjustment() && exposure.isNewAdjustmentBurn() && enlarger.getState() == Lamp::OFF) {
+                enlarger.startExposure();
+                if (enlarger.getPrepare() && !exposure.getBaseTime()) {
+                    prepareState = true;
+                }
+            } else {
+                enlarger.switchOff();
+                insertEvent(Event::MOVE_TO_PAUSE);
+            }
+            break;
+        case Event::LONGPRESS_EXIT:
+            exposure.remove();
+            buzzer.doubleBuzz();
+            display.drawAdjustmentRemoved();
+            break;
+        default:
+            break;
+        }
     }
+    if (enlarger.getState() == Lamp::ON) enlarger.run();
 }
 
 void Timer::state_teststrip_run(){

@@ -29,11 +29,12 @@ private:
     uint16_t baseTimeCounterAdjusted = 160;
     
     const uint8_t precisions[10] = {2, 3, 4, 6, 8, 12, 16, 24, 32, 48};
-    int8_t steps = 24;
+    int16_t steps = 24;
     uint8_t precision = 6;
     uint8_t newPrecisionIdx = 3;
     uint8_t precisionIdx = 3;
     uint8_t precisionMultiplier = 4;
+    bool splitState = true;
 
     
     uint8_t size;
@@ -86,6 +87,7 @@ private:
     uint8_t getAdjustmentArea();
     Mode getMode();
     bool isNewAdjustment();
+    bool isNewAdjustmentBurn();
     bool getBaseTime();
     void setBaseTime();
     void setPrecision(uint8_t i);
@@ -109,6 +111,7 @@ private:
     void setPrecisionDown();
     void updatePrecision();
     uint8_t getNewPrecision();
+    void splitSteps();
     void setLinearUp();
     void setLinearDown();
     void switchLinearPrecision();
