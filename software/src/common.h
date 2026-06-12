@@ -20,7 +20,7 @@
 #define TESTSTRIP_PIN D7
 
 
-#define EVENTS 53
+#define EVENTS 50
 
 enum class Event {
     NO_EVENT,
@@ -46,6 +46,7 @@ enum class Event {
     MOVE_TO_TESTSTRIP,
     MOVE_TO_LAMPUSAGE,
     MOVE_TO_LINEAR,
+    MOVE_TO_PAPER,
 };
 
 enum class State {
@@ -60,7 +61,8 @@ enum class State {
     LAMPUSAGE = 8,
     PRECISION = 9,
     LINEAR = 10,
-    COUNT = 11,
+    PAPER = 11,
+    COUNT = 12,
 };
 
 enum class Relay {
@@ -120,6 +122,17 @@ enum class LampUsage {
 enum class LinearPrecision {
     SECONDS,
     TENTHS,
+};
+
+enum class Dev {
+    ON,
+    OFF,
+};
+
+enum class DevType {
+    DEVELOPER,
+    STOP_BATH,
+    FIXER,
 };
 
 #endif

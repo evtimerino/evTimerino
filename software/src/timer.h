@@ -7,6 +7,7 @@
 #include <enlarger.h>
 #include <menu.h>
 #include <storage.h>
+#include <paper.h>
 
 #ifndef TIMER_H
 #define TIMER_H
@@ -14,7 +15,7 @@
 class Timer {
 
 public:
-    Timer(Display& d, Keypad& k, Buzzer& b, Exposure& e, Enlarger& i, TimerMenu::Menu& m, Storage& s);
+    Timer(Display& d, Keypad& k, Buzzer& b, Exposure& e, Enlarger& i, TimerMenu::Menu& m, Storage& s, Paper& p);
     ~Timer();
 
     void insertEvent(Event event);
@@ -29,6 +30,7 @@ private:
     Enlarger& enlarger;
     TimerMenu::Menu& menu;
     Storage& storage;
+    Paper& paper;
 
     bool prepareState = false;
             
@@ -40,49 +42,7 @@ private:
         State to;
     };
 
-    transition_t transitions[EVENTS] = {
-        {State::MAIN, Event::NO_EVENT, State::MAIN},
-        {State::MENU, Event::NO_EVENT, State::MENU},
-        {State::FOCUS, Event::NO_EVENT, State::FOCUS},
-        {State::PAUSE, Event::NO_EVENT, State::PAUSE},
-        {State::ADJUSTMENT, Event::NO_EVENT, State::ADJUSTMENT},
-        {State::TESTSTRIP, Event::NO_EVENT, State::TESTSTRIP},
-        {State::PREPARE, Event::NO_EVENT, State::PREPARE},
-        {State::LAMPUSAGE, Event::NO_EVENT, State::LAMPUSAGE},
-        {State::METRONOME, Event::NO_EVENT, State::METRONOME},
-        {State::PRECISION, Event::NO_EVENT, State::PRECISION},
-        {State::LINEAR, Event::NO_EVENT, State::LINEAR},
-        {State::MAIN, Event::RELEASED_FOCUS, State::FOCUS},
-        {State::FOCUS, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::RELEASED_ADJUSTMENT, State::ADJUSTMENT},
-        {State::MAIN, Event::RELEASED_TESTSTRIP, State::TESTSTRIP},
-        {State::MAIN, Event::MOVE_TO_MENU, State::MENU},
-        {State::ADJUSTMENT, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MENU, Event::RELEASED_EXIT, State::MAIN},
-        {State::MENU, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::RELEASED_TESTSTRIP, State::TESTSTRIP},
-        {State::TESTSTRIP, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::MOVE_TO_PREPARE, State::PREPARE},
-        {State::PREPARE, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::LONGPRESS_TESTSTRIP, State::METRONOME},
-        {State::METRONOME, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::MOVE_TO_PAUSE, State::PAUSE},
-        {State::TESTSTRIP, Event::MOVE_TO_PAUSE, State::PAUSE},
-        {State::PAUSE, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::PAUSE, Event::MOVE_TO_TESTSTRIP, State::TESTSTRIP},
-        {State::MAIN, Event::MOVE_TO_LAMPUSAGE, State::LAMPUSAGE},
-        {State::LAMPUSAGE, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::LONGPRESS_UP, State::PRECISION},
-        {State::PRECISION, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::MAIN, Event::MOVE_TO_LINEAR, State::LINEAR},
-        {State::LINEAR, Event::MOVE_TO_MAIN, State::MAIN},
-        {State::LINEAR, Event::RELEASED_TESTSTRIP, State::METRONOME},
-        {State::METRONOME, Event::MOVE_TO_LINEAR, State::LINEAR},
-        {State::LINEAR, Event::MOVE_TO_PAUSE, State::PAUSE},
-        {State::PAUSE, Event::MOVE_TO_LINEAR, State::LINEAR},
-        {State::LINEAR, Event::RELEASED_FOCUS, State::FOCUS},
-        {State::FOCUS, Event::MOVE_TO_LINEAR, State::LINEAR},
-    };
+    static const transition_t transitions[];
 
     typedef void (Timer::* voidfunc)();
     static voidfunc run[static_cast<int>(State::COUNT)];
@@ -90,6 +50,29 @@ private:
     State currentState;
     State previousState = State::MAIN;
     bool stateCountup = false;
+
+    uint16_t lastPaperDisplayCounter = 0xFFFF;
+    uint8_t lastPrecisionDisplay = 0xFF;
+    bool mainDisplayCacheValid = false;
+    bool mainDisplayCacheBaseTime = false;
+    uint16_t mainDisplayBaseTimeCounter = 0;
+    uint8_t mainDisplayPrecision = 0;
+    uint8_t mainDisplayDodgeCount = 0;
+    uint8_t mainDisplayBurnCount = 0;
+    bool mainDisplayPrepare = false;
+    Adjustment mainDisplayAdjType = Adjustment::NONE;
+    uint16_t mainDisplayAdjTimeCounter = 0;
+    uint8_t mainDisplayAdjArea = 0;
+    uint8_t mainDisplayAdjValue = 0;
+    uint8_t mainDisplayAdjPrecision = 0;
+    bool adjustmentDisplayCacheValid = false;
+    bool adjustmentDisplayIsNew = false;
+    uint16_t adjustmentDisplayTimeCounter = 0;
+    uint8_t adjustmentDisplayValue = 0;
+    Adjustment adjustmentDisplayType = Adjustment::NONE;
+    uint8_t adjustmentDisplayNumber = 0;
+    uint8_t adjustmentDisplayPrecision = 0;
+    uint8_t adjustmentDisplayArea = 0;
     
     Event currentEvent;
     Event nextEvent;
@@ -108,6 +91,7 @@ private:
     void state_lampusage_run();
     void state_precision_run();
     void state_linear_run();
+    void state_paper_run();
 };
 
 #endif

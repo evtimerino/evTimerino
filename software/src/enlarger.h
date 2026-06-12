@@ -30,6 +30,8 @@ private:
     uint16_t lampUsageBaseTime = 0;
     uint16_t focusLampUsageCounter = 0;
 
+    bool isExposureFinished = false;
+
     void updateRelay();
     void updateSafeLight();
     void setLampUsageBaseTime(uint16_t c);
@@ -65,6 +67,9 @@ public:
     bool getLampUsage();
 
     uint16_t getLampUsageCounter(bool pause);
+
+    bool getIsExposureFinished();
+    void setIsExposureFinished(bool v);
 
 };
 

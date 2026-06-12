@@ -21,6 +21,33 @@ namespace TimerMenu {
     uint8_t lampUsageCurrentSelection = 0;
     uint8_t brightnessPreviousSelection = 0;
     uint8_t brightnessCurrentSelection = 0;
+    uint8_t paperEnabledPreviousSelection = 1;
+    uint8_t paperEnabledCurrentSelection = 1;
+    uint8_t paperDevMinutesPreviousSelection = 0;
+    uint8_t paperDevMinutesCurrentSelection = 0;
+    uint8_t paperDevSecondsPreviousSelection = 30;
+    uint8_t paperDevSecondsCurrentSelection = 30;
+    uint8_t paperStopMinutesPreviousSelection = 0;
+    uint8_t paperStopMinutesCurrentSelection = 0;
+    uint8_t paperStopSecondsPreviousSelection = 30;
+    uint8_t paperStopSecondsCurrentSelection = 30;
+    uint8_t paperFixerMinutesPreviousSelection = 0;
+    uint8_t paperFixerMinutesCurrentSelection = 0;
+    uint8_t paperFixerSecondsPreviousSelection = 30;
+    uint8_t paperFixerSecondsCurrentSelection = 30;
+
+    static uint16_t paperCounterFromParts(uint8_t minutesSelection, uint8_t secondsSelection) {
+        if (minutesSelection > 3) minutesSelection = 3;
+        if (secondsSelection > 59) secondsSelection = 59;
+        return static_cast<uint16_t>((static_cast<uint16_t>(minutesSelection) * 60) + secondsSelection) * 10;
+    }
+
+    static void paperCounterToParts(uint16_t t, uint8_t& minutesSelection, uint8_t& secondsSelection) {
+        minutesSelection = static_cast<uint8_t>(t / 600);
+        if (minutesSelection > 3) minutesSelection = 3;
+        secondsSelection = static_cast<uint8_t>((t % 600) / 10);
+        if (secondsSelection > 59) secondsSelection = 59;
+    }
 
 
     uint8_t muiHrule(mui_t *ui, uint8_t msg)
@@ -55,6 +82,13 @@ namespace TimerMenu {
         MUIF_VARIABLE("RE", &prepareCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RC", &lampUsageCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RV", &brightnessCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RW", &paperEnabledCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q1", &paperDevMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q2", &paperDevSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q3", &paperStopMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q4", &paperStopSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q5", &paperFixerMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q6", &paperFixerSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
     };
 
     fds_t fds_data[] = 
@@ -67,6 +101,7 @@ namespace TimerMenu {
         MUI_DATA("GP", 
             MUI_10 "Precision|"
             MUI_11 "Test Strip|"
+            MUI_19 "Paper Dev|"
             MUI_12 "Brightness|"
             MUI_13 "Safelight|"
             MUI_14 "Start Time|"
@@ -171,10 +206,71 @@ namespace TimerMenu {
         MUI_STYLE(0)
         MUI_LABEL(45, 40, "1.2.0")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
+
+        MUI_FORM(19)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Paper Dev")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_DATA("GP", 
+            MUI_20 "Enabled|"
+            MUI_21 "Dev Time|"
+            MUI_22 "Stop Time|"
+            MUI_23 "Fixer Time|"
+            )
+        MUI_XYA("GC", 5, 25, 0)
+        MUI_XYA("GC", 5, 37, 1)
+        MUI_XYA("GC", 5, 49, 2)
+        MUI_XYA("GC", 5, 61, 3)
+
+        MUI_FORM(20)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Paper Enabled")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYAT("RW", 5, 22, 0, "Off")
+        MUI_XYAT("RW", 5, 32, 1, "On")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(21)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Dev Time")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Minutes")
+        MUI_XY("Q1", 70, 24)
+        MUI_LABEL(5, 40, "Seconds")
+        MUI_XY("Q2", 70, 40)
+        MUI_LABEL(5, 52, "Range: 0-59")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(22)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Stop Time")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Minutes")
+        MUI_XY("Q3", 70, 24)
+        MUI_LABEL(5, 40, "Seconds")
+        MUI_XY("Q4", 70, 40)
+        MUI_LABEL(5, 52, "Range: 0-59")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(23)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Fixer Time")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Minutes")
+        MUI_XY("Q5", 70, 24)
+        MUI_LABEL(5, 40, "Seconds")
+        MUI_XY("Q6", 70, 40)
+        MUI_LABEL(5, 52, "Range: 0-59")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
     ;
 
 
-    Menu::Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s) : keypad(k), exposure(e), oled(o), enlarger(l), buzzer(b), display(d), storage(s) {}
+    Menu::Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s, Paper& p) : keypad(k), exposure(e), oled(o), enlarger(l), buzzer(b), display(d), storage(s), paper(p) {}
     Menu::~Menu() {}
 
     void Menu::setup() {
@@ -284,6 +380,18 @@ namespace TimerMenu {
 
         brightnessCurrentSelection = display.getBrightnessLevel();
         brightnessPreviousSelection = brightnessCurrentSelection;
+
+        paperEnabledCurrentSelection = paper.getEnabled() ? 1 : 0;
+        paperEnabledPreviousSelection = paperEnabledCurrentSelection;
+        paperCounterToParts(paper.getDevTimeCounter(), paperDevMinutesCurrentSelection, paperDevSecondsCurrentSelection);
+        paperDevMinutesPreviousSelection = paperDevMinutesCurrentSelection;
+        paperDevSecondsPreviousSelection = paperDevSecondsCurrentSelection;
+        paperCounterToParts(paper.getStopTimeCounter(), paperStopMinutesCurrentSelection, paperStopSecondsCurrentSelection);
+        paperStopMinutesPreviousSelection = paperStopMinutesCurrentSelection;
+        paperStopSecondsPreviousSelection = paperStopSecondsCurrentSelection;
+        paperCounterToParts(paper.getFixerTimeCounter(), paperFixerMinutesCurrentSelection, paperFixerSecondsCurrentSelection);
+        paperFixerMinutesPreviousSelection = paperFixerMinutesCurrentSelection;
+        paperFixerSecondsPreviousSelection = paperFixerSecondsCurrentSelection;
     }
 
     void Menu::goToForm(uint8_t id, uint8_t pos) {
@@ -292,7 +400,7 @@ namespace TimerMenu {
     }
 
     void Menu::loop() {
-        while (event != Event::RELEASED_EXIT) {        
+        while (event != Event::RELEASED_EXIT && event != Event::LONGPRESS_EXIT) {
             keypad.tick();
             event = keypad.fetchKeypadEvent();
             if (event == Event::LONGPRESS_MENU) tone(BUZZER_PIN, 500, 100);
@@ -462,6 +570,40 @@ namespace TimerMenu {
             }
             storage.storeLampUsage(lampUsageCurrentSelection);
             lampUsagePreviousSelection = lampUsageCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperEnabledCurrentSelection != paperEnabledPreviousSelection) {
+            paper.setEnabled(paperEnabledCurrentSelection != 0);
+            storage.storePaperEnabled(paperEnabledCurrentSelection);
+            paperEnabledPreviousSelection = paperEnabledCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperDevMinutesCurrentSelection != paperDevMinutesPreviousSelection || paperDevSecondsCurrentSelection != paperDevSecondsPreviousSelection) {
+            uint16_t value = paperCounterFromParts(paperDevMinutesCurrentSelection, paperDevSecondsCurrentSelection);
+            paper.setDevTimeCounter(value);
+            storage.storePaperDevTime(value);
+            paperDevMinutesPreviousSelection = paperDevMinutesCurrentSelection;
+            paperDevSecondsPreviousSelection = paperDevSecondsCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperStopMinutesCurrentSelection != paperStopMinutesPreviousSelection || paperStopSecondsCurrentSelection != paperStopSecondsPreviousSelection) {
+            uint16_t value = paperCounterFromParts(paperStopMinutesCurrentSelection, paperStopSecondsCurrentSelection);
+            paper.setStopTimeCounter(value);
+            storage.storePaperStopTime(value);
+            paperStopMinutesPreviousSelection = paperStopMinutesCurrentSelection;
+            paperStopSecondsPreviousSelection = paperStopSecondsCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperFixerMinutesCurrentSelection != paperFixerMinutesPreviousSelection || paperFixerSecondsCurrentSelection != paperFixerSecondsPreviousSelection) {
+            uint16_t value = paperCounterFromParts(paperFixerMinutesCurrentSelection, paperFixerSecondsCurrentSelection);
+            paper.setFixerTimeCounter(value);
+            storage.storePaperFixerTime(value);
+            paperFixerMinutesPreviousSelection = paperFixerMinutesCurrentSelection;
+            paperFixerSecondsPreviousSelection = paperFixerSecondsCurrentSelection;
             isUpdate = true;
         }
     }

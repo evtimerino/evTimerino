@@ -1,3 +1,4 @@
+#include "common.h"
 #include <exposure.h>
 
 Exposure::Exposure(Buzzer& b) : buzzer(b)  {
@@ -527,23 +528,23 @@ void Exposure::testStripNext() {
 
 uint16_t Exposure::getTestStripTimeCounter() {
     if (teststripMode == Teststrip::SEPARATE_B || teststripMode == Teststrip::SEPARATE_A) {
-        float power = ((float)steps + teststripSteps) / (float)precision;
+        float power = ((float)tsSteps + teststripSteps) / (float)tsPrecision;
         return lrint(10*pow(2.0f,power));
     }
     if (teststripMode == Teststrip::SPLIT_GRADE){
         if (teststripSteps%2 == 0) return baseTimeCounter;
         uint8_t adjusted_steps = 1;
         if (teststripSteps > 1) adjusted_steps = teststripSteps-1;
-        float power = ((float)steps + adjusted_steps) / (float)precision;
+        float power = ((float)tsSteps + adjusted_steps) / (float)tsPrecision;
         uint16_t newTime = lrint(10*pow(2.0f,power));
         return newTime - baseTimeCounter;
     }
     if (teststripMode == Teststrip::INCREMENTAL_B) {
         if (teststripSteps == 0) return baseTimeCounter;
-        float power = ((float)steps + teststripSteps) / (float)precision;
+        float power = ((float)tsSteps + (teststripSteps)) / (float)tsPrecision;
         uint16_t newTime = lrint(10*pow(2.0f,power));
         if (teststripSteps >= 2) {
-            power = ((float)steps + teststripSteps-1) / (float)precision;
+            power = ((float)tsSteps + (teststripSteps-1)) / (float)tsPrecision;
             uint16_t prevTime = lrint(10*pow(2.0f,power));
             return (newTime - baseTimeCounter) - (prevTime - baseTimeCounter);
         }
@@ -551,17 +552,17 @@ uint16_t Exposure::getTestStripTimeCounter() {
     }
     if (teststripMode == Teststrip::INCREMENTAL_A) {
         if (teststripSteps == -3) {
-            float power = ((float)steps + teststripSteps) / (float)precision;
+            float power = ((float)tsSteps + (teststripSteps)) / (float)tsPrecision;
             return lrint(10*pow(2.0f,power));
         }
         if (teststripSteps >= -2) {
-            float power = ((float)steps - 3) / (float)precision;
+            float power = ((float)tsSteps - 3) / (float)tsPrecision;
             uint16_t firtTime = lrint(10*pow(2.0f,power));
             
-            power = ((float)steps + teststripSteps) / (float)precision;
+            power = ((float)tsSteps + (teststripSteps)) / (float)tsPrecision;
             uint16_t newTime = lrint(10*pow(2.0f,power));
             if (teststripSteps > -2) {
-                power = ((float)steps + teststripSteps-1) / (float)precision;
+                power = ((float)tsSteps + ((teststripSteps-1))) / (float)tsPrecision;
                 uint16_t prevTime = lrint(10*pow(2.0f,power));
                 return (newTime - firtTime) - (prevTime - firtTime);
             }
@@ -571,7 +572,7 @@ uint16_t Exposure::getTestStripTimeCounter() {
     return 0;
 }
 
-void Exposure::resetTestStrip() {
+void Exposure::resetTestStripSteps() {
     if (teststripMode == Teststrip::SEPARATE_A || teststripMode == Teststrip::INCREMENTAL_A) {
         teststripSteps = -3;
         return;
@@ -766,3 +767,82 @@ uint16_t Exposure::getLinearTimeCounter() {
 LinearPrecision Exposure::getLinearPrecision() {
     return linearPrecision;
 }
+
+void Exposure::setTestStripPrecisionUp() {
+    if (tsPrecisionIdx == 5) {
+        return;
+    }
+    tsPrecisionIdx++;
+    if (tsPrecisionIdx > precisionIdx) {
+        tsPrecision = precisions[tsPrecisionIdx];
+        tsSteps = (tsSteps / precisions[tsPrecisionIdx-1]) * tsPrecision;
+    }
+    if (tsPrecisionIdx == precisionIdx) {
+        tsPrecision = precisions[tsPrecisionIdx];
+        tsSteps = steps;
+    }
+    if (tsPrecisionIdx < precisionIdx) {
+        tsPrecision = precisions[tsPrecisionIdx];
+        tsSteps = steps / (precision / tsPrecision);
+    }
+}
+
+void Exposure::setTestStripPrecisionDown() {
+    if (precision == 3) {
+        return;
+    }
+    if (tsPrecisionIdx == 0) {
+        return;
+    }
+    tsPrecisionIdx--;
+    if (tsPrecisionIdx == precisionIdx) {
+        tsSteps = steps;
+        tsPrecision = precisions[tsPrecisionIdx];
+    }
+    if (tsPrecisionIdx < precisionIdx) {
+        tsPrecision = precisions[tsPrecisionIdx];
+        tsSteps = steps / (precision / tsPrecision);
+    } 
+    if (tsPrecisionIdx > precisionIdx) {
+        tsPrecision = precisions[tsPrecisionIdx];
+        tsSteps = (tsSteps / precisions[tsPrecisionIdx+1]) * tsPrecision;
+    }
+}
+
+uint8_t Exposure::getTestStripPrecision() {
+    return tsPrecision;
+}
+
+void Exposure::resetTestStrip() {
+    tsPrecisionIdx = precisionIdx;
+    tsPrecision = precision;
+    tsSteps = steps;
+}
+
+/*
+void Exposure::AdjPrecisionSwitch() {
+    switch (adjPrecisionIdx) {
+    case 0:
+        adjPrecisionIdx = 1;
+        break;
+    case 1:
+        adjPrecisionIdx = 2;
+        break;
+    case 2:
+        adjPrecisionIdx = 0;
+        break;
+    default:
+        break;
+    }
+    adjPrecision = precisions[adjPrecisionIdx];
+    newAdj->precision = adjPrecision;
+    newAdj->timeCounter = 0;
+    newAdj->value = 0;
+    newAdj->steps = 0;
+    adjIncrement = precision / adjPrecision;
+}
+
+uint8_t Exposure::getAdjPrecision() {
+    return adjPrecision;
+}
+*/

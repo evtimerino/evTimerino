@@ -2,7 +2,7 @@
 
 using voidfunc = void (Timer::*)();
 
-Timer::Timer(Display& d, Keypad& k, Buzzer& b, Exposure& e, Enlarger& i, TimerMenu::Menu& m, Storage& s) : display(d), keypad(k), buzzer(b), exposure(e), enlarger(i), menu(m), storage(s) {
+Timer::Timer(Display& d, Keypad& k, Buzzer& b, Exposure& e, Enlarger& i, TimerMenu::Menu& m, Storage& s, Paper& p) : display(d), keypad(k), buzzer(b), exposure(e), enlarger(i), menu(m), storage(s), paper(p) {
 }
 
 Timer::~Timer() {}
@@ -19,6 +19,53 @@ Timer::voidfunc Timer::run[] = {
     &Timer::state_lampusage_run,
     &Timer::state_precision_run,
     &Timer::state_linear_run,
+    &Timer::state_paper_run,
+};
+
+const Timer::transition_t Timer::transitions[] = {
+    {State::MAIN, Event::NO_EVENT, State::MAIN},
+    {State::MENU, Event::NO_EVENT, State::MENU},
+    {State::FOCUS, Event::NO_EVENT, State::FOCUS},
+    {State::PAUSE, Event::NO_EVENT, State::PAUSE},
+    {State::ADJUSTMENT, Event::NO_EVENT, State::ADJUSTMENT},
+    {State::TESTSTRIP, Event::NO_EVENT, State::TESTSTRIP},
+    {State::PREPARE, Event::NO_EVENT, State::PREPARE},
+    {State::LAMPUSAGE, Event::NO_EVENT, State::LAMPUSAGE},
+    {State::METRONOME, Event::NO_EVENT, State::METRONOME},
+    {State::PRECISION, Event::NO_EVENT, State::PRECISION},
+    {State::LINEAR, Event::NO_EVENT, State::LINEAR},
+    {State::MAIN, Event::RELEASED_FOCUS, State::FOCUS},
+    {State::FOCUS, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::RELEASED_ADJUSTMENT, State::ADJUSTMENT},
+    {State::MAIN, Event::MOVE_TO_MENU, State::MENU},
+    {State::ADJUSTMENT, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MENU, Event::RELEASED_EXIT, State::MAIN},
+    {State::MENU, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::RELEASED_TESTSTRIP, State::TESTSTRIP},
+    {State::TESTSTRIP, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::MOVE_TO_PREPARE, State::PREPARE},
+    {State::PREPARE, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::LONGPRESS_TESTSTRIP, State::METRONOME},
+    {State::METRONOME, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::MOVE_TO_PAUSE, State::PAUSE},
+    {State::TESTSTRIP, Event::MOVE_TO_PAUSE, State::PAUSE},
+    {State::PAUSE, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::PAUSE, Event::MOVE_TO_TESTSTRIP, State::TESTSTRIP},
+    {State::MAIN, Event::MOVE_TO_LAMPUSAGE, State::LAMPUSAGE},
+    {State::LAMPUSAGE, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::LONGPRESS_UP, State::PRECISION},
+    {State::PRECISION, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::MAIN, Event::MOVE_TO_LINEAR, State::LINEAR},
+    {State::LINEAR, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::LINEAR, Event::RELEASED_TESTSTRIP, State::METRONOME},
+    {State::METRONOME, Event::MOVE_TO_LINEAR, State::LINEAR},
+    {State::LINEAR, Event::MOVE_TO_PAUSE, State::PAUSE},
+    {State::PAUSE, Event::MOVE_TO_LINEAR, State::LINEAR},
+    {State::LINEAR, Event::RELEASED_FOCUS, State::FOCUS},
+    {State::FOCUS, Event::MOVE_TO_LINEAR, State::LINEAR},
+    {State::MAIN, Event::MOVE_TO_PAPER, State::PAPER},
+    {State::PAPER, Event::NO_EVENT, State::PAPER},
+    {State::PAPER, Event::MOVE_TO_MAIN, State::MAIN},
 };
 
 void Timer::init(){
@@ -50,24 +97,34 @@ void Timer::processInput() {
 
 void Timer::Run(){
     keypad.tick();
-    Event event = keypad.fetchKeypadEvent();
-    if (event != Event::NO_EVENT) insertEvent(event);
+        Event event = keypad.fetchKeypadEvent();
+        if (event != Event::NO_EVENT) insertEvent(event);
     processInput();
     processEvent();
     (this->*run[static_cast<int>(currentState)])();
 }
 
 void Timer :: processEvent() {
-    for (uint8_t i = 0; i < EVENTS; i++) {
-        if (currentState == transitions[i].from && nextEvent == transitions[i].event) {
-            currentState = transitions[i].to;
+    for (const auto& transition : transitions) {
+        if (currentState == transition.from && nextEvent == transition.event) {
+            currentState = transition.to;
             nextEvent = Event::NO_EVENT;
             return;
         }
     }
 }
 
-void Timer::state_main_run() {    
+void Timer::state_main_run() {
+
+    if (enlarger.getIsExposureFinished()) {
+        if (paper.getEnabled()) {
+            paper.reset();
+            insertEvent(Event::MOVE_TO_PAPER);
+        }
+        enlarger.setIsExposureFinished(false);
+        return;
+    }
+
     if (enlarger.getLampUsage()) {
         uint16_t counter = enlarger.getLampUsageCounter(false);
         if (counter != 0) {
@@ -99,9 +156,11 @@ void Timer::state_main_run() {
         break;
     case Event::RELEASED_UP:
         exposure.setBaseExposureUp();
+        exposure.resetTestStrip();
         break;
     case Event::RELEASED_DOWN:
         exposure.setBaseExposureDown();
+        exposure.resetTestStrip();
         break;
     case Event::LONGPRESS_DOWN:
         exposure.splitSteps();
@@ -171,6 +230,9 @@ void Timer::state_adjustment_run() {
             exposure.setMode(Mode::EXPOSURE);
             insertEvent(Event::MOVE_TO_MAIN);
             break;
+        case Event::RELEASED_MENU:
+            //exposure.AdjPrecisionSwitch();
+            break;
         case Event::RELEASED_START:
             exposure.setMode(Mode::ADJUSTMENT);
             if (exposure.isNewAdjustment() && exposure.isNewAdjustmentBurn() && enlarger.getState() == Lamp::OFF) {
@@ -197,7 +259,7 @@ void Timer::state_adjustment_run() {
 
 void Timer::state_teststrip_run(){
     if (enlarger.getState() == Lamp::OFF) {
-        display.drawTestStrip(exposure.getTestStripMode(), exposure.getTestStripTimeCounter(), exposure.getTestStripSteps());
+        display.drawTestStrip(exposure.getTestStripMode(), exposure.getTestStripTimeCounter(), exposure.getTestStripSteps(), exposure.getTestStripPrecision());
     }
     switch (nextEvent)
     {
@@ -216,6 +278,12 @@ void Timer::state_teststrip_run(){
     case Event::RELEASED_TESTSTRIP:
         exposure.switchTestStripMode();
         break;
+    case Event::RELEASED_UP:
+        exposure.setTestStripPrecisionUp();
+        break;
+    case Event::RELEASED_DOWN:
+        exposure.setTestStripPrecisionDown();
+        break;
     case Event::RELEASED_EXIT:
         exposure.resetTestStrip();
         exposure.resetBaseTime();
@@ -230,7 +298,7 @@ void Timer::state_teststrip_run(){
 
 
 void Timer::state_prepare_run() {
-    display.drawPrepare();
+        display.drawPrepare();
     if (nextEvent == Event::RELEASED_START) {
         buzzer.exposure();
         switch (enlarger.getStatePrepare())
@@ -280,7 +348,7 @@ void Timer::state_menu_run() {
 }
 
 void Timer::state_pause_run() {
-    display.drawPause();
+        display.drawPause();
     if (nextEvent == Event::RELEASED_START) {
         enlarger.switchOn();
         if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
@@ -373,4 +441,29 @@ void Timer::state_linear_run() {
         break;
     }
     if (enlarger.getState() == Lamp::ON) enlarger.run();
+}
+
+void Timer::state_paper_run() {
+    display.drawPaper(paper.getTimeCounter(), paper.getDevType());
+    switch (nextEvent)    {
+    case Event::RELEASED_EXIT:
+        paper.reset();
+        enlarger.setIsExposureFinished(false);
+        insertEvent(Event::MOVE_TO_MAIN);
+        break;
+    case Event::RELEASED_START:
+        if (paper.getState() == Dev::OFF) {
+            paper.startDevelopment();
+        }
+        break;
+    default:
+        break;
+    }
+    if (paper.getState() == Dev::ON) {
+        paper.run();
+        if (paper.consumeCycleFinished()) {
+            enlarger.setIsExposureFinished(false);
+            insertEvent(Event::MOVE_TO_MAIN);
+        }
+    }
 }

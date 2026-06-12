@@ -5,6 +5,7 @@
 #include <exposure.h>
 #include <enlarger.h>
 #include <display.h>
+#include <paper.h>
 
 #ifndef USER_PREFERENCES_H
 #define USER_PREFERENCES_H
@@ -17,6 +18,7 @@ private:
     Exposure& exposure;
     Buzzer& buzzer;
     Enlarger& enlarger;
+    Paper& paper;
 
     uint32_t lampUsageHoursCounter = 0;
     uint8_t lampUsageMinutesCounter = 1;
@@ -24,7 +26,7 @@ private:
     uint32_t lampUsageTenthsCounter = 0;
 
 public:
-    Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l);
+    Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l, Paper& pa);
     ~Storage();
     void load();
     uint16_t getLampUsageHours();
@@ -39,6 +41,10 @@ public:
     void storeBuzzer(uint8_t b);
     void storePrepare(uint8_t p);
     void storeBrightness(uint8_t b);
+    void storePaperEnabled(uint8_t e);
+    void storePaperDevTime(uint16_t t);
+    void storePaperStopTime(uint16_t t);
+    void storePaperFixerTime(uint16_t t);
     
     void resetLampUsage();
 };

@@ -1,7 +1,7 @@
 #include "common.h"
 #include <storage.h>
 
-Storage::Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l) : display(o), preferences(p), exposure(e), buzzer(b), enlarger(l) {
+Storage::Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l, Paper& pa) : display(o), preferences(p), exposure(e), buzzer(b), enlarger(l), paper(pa) {
 }
 
 Storage::~Storage() {}
@@ -84,10 +84,21 @@ void Storage::load() {
     default:
         break;
     }
+    exposure.resetTestStripSteps();
     lampUsageHoursCounter = preferences.getUInt("LUHours", 0);
     lampUsageMinutesCounter = preferences.getUInt("LUMinutes", 0);
     lampUsageSecondsCounter = preferences.getUInt("LUSeconds", 0);
     lampUsageTenthsCounter = preferences.getUInt("LUTenth", 0);
+
+    uint8_t paperEnabled = preferences.getUChar("paperEn", 1);
+    uint16_t paperDev = preferences.getUShort("paperDev", paper.getDevTimeCounter());
+    uint16_t paperStop = preferences.getUShort("paperStop", paper.getStopTimeCounter());
+    uint16_t paperFix = preferences.getUShort("paperFix", paper.getFixerTimeCounter());
+    paper.setDevTimeCounter(paperDev);
+    paper.setStopTimeCounter(paperStop);
+    paper.setFixerTimeCounter(paperFix);
+    paper.setEnabled(paperEnabled != 0);
+
     preferences.end();
 }
 
@@ -174,6 +185,30 @@ void Storage::storePrepare(uint8_t p) {
 void Storage::storeBrightness(uint8_t b) {
     preferences.begin("data", false);
     preferences.putInt("brightness", b);
+    preferences.end();
+}
+
+void Storage::storePaperEnabled(uint8_t e) {
+    preferences.begin("data", false);
+    preferences.putUChar("paperEn", e);
+    preferences.end();
+}
+
+void Storage::storePaperDevTime(uint16_t t) {
+    preferences.begin("data", false);
+    preferences.putUShort("paperDev", t);
+    preferences.end();
+}
+
+void Storage::storePaperStopTime(uint16_t t) {
+    preferences.begin("data", false);
+    preferences.putUShort("paperStop", t);
+    preferences.end();
+}
+
+void Storage::storePaperFixerTime(uint16_t t) {
+    preferences.begin("data", false);
+    preferences.putUShort("paperFix", t);
     preferences.end();
 }
 
