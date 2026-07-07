@@ -711,12 +711,18 @@ void Exposure::switchTestStripMode() {
 }
 
 void Exposure::setPrecisionUp() {
-    if (newPrecisionIdx < 9) {
+    if (newPrecisionIdx > 3) {
+        newPrecisionIdx = 3;
+    }
+    if (newPrecisionIdx < 3) {
         newPrecisionIdx++;
     }
 }
 
 void Exposure::setPrecisionDown() {
+    if (newPrecisionIdx > 3) {
+        newPrecisionIdx = 3;
+    }
     if (newPrecisionIdx > 0) {
         newPrecisionIdx--;
     }
@@ -728,9 +734,10 @@ uint8_t Exposure::getNewPrecision() {
 
 void Exposure::updatePrecision() {
     if (newPrecisionIdx != precisionIdx) {
-        precisionIdx = newPrecisionIdx;
-        setPrecision(precisionIdx);
+        uint8_t selectedPrecisionIdx = newPrecisionIdx;
         clear();
+        setPrecision(selectedPrecisionIdx);
+        newPrecisionIdx = selectedPrecisionIdx;
     }
     splitState = precisionIdx < 5;
 }

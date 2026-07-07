@@ -132,8 +132,8 @@ namespace TimerMenu {
         MUI_STYLE(0)
         MUI_XYAT("RS",5, 22, 0 , "1/2")
         MUI_XYAT("RS",5, 32, 1, "1/3")
-        MUI_XYAT("RS",5, 42, 2, "1/4")
-        MUI_XYAT("RS",5, 52, 3, "1/6")
+        MUI_XYAT("RS",5, 42, 2, "1/6")
+        MUI_XYAT("RS",5, 52, 3, "1/12")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
     
         MUI_FORM(11)

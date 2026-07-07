@@ -124,6 +124,10 @@ void Timer :: processEvent() {
                 adjustmentEnteredFromFase = true;
             }
 
+            if (transition.from == State::MAIN && transition.to == State::PRECISION && nextEvent == Event::LONGPRESS_UP) {
+                ignorePrecisionReleaseUp = true;
+            }
+
             if (transition.from != transition.to) {
                 previousState = currentState;
             }
@@ -454,6 +458,10 @@ void Timer::state_precision_run() {
     switch (nextEvent)
     {
     case Event::RELEASED_UP:
+        if (ignorePrecisionReleaseUp) {
+            ignorePrecisionReleaseUp = false;
+            break;
+        }
         exposure.setPrecisionUp();
         break;
     case Event::RELEASED_DOWN:

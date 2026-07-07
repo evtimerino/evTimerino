@@ -50,6 +50,7 @@ private:
     State currentState;
     State previousState = State::MAIN;
     bool adjustmentEnteredFromFase = false;
+    bool ignorePrecisionReleaseUp = false;
     bool stateCountup = false;
     unsigned long lastAdjustmentExitMs = 0;
     static constexpr unsigned long adjustmentExitDebounceMs = 120;
