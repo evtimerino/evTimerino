@@ -12,6 +12,7 @@ Timer::voidfunc Timer::run[] = {
     &Timer::state_teststrip_run,
     &Timer::state_menu_run,
     &Timer::state_adjustment_run,
+    &Timer::state_adjustment_phase_run,
     &Timer::state_focus_run,
     &Timer::state_prepare_run,
     &Timer::state_metronome_run,
@@ -28,6 +29,7 @@ const Timer::transition_t Timer::transitions[] = {
     {State::FOCUS, Event::NO_EVENT, State::FOCUS},
     {State::PAUSE, Event::NO_EVENT, State::PAUSE},
     {State::ADJUSTMENT, Event::NO_EVENT, State::ADJUSTMENT},
+    {State::ADJUSTMENT_PHASE, Event::NO_EVENT, State::ADJUSTMENT_PHASE},
     {State::TESTSTRIP, Event::NO_EVENT, State::TESTSTRIP},
     {State::PREPARE, Event::NO_EVENT, State::PREPARE},
     {State::LAMPUSAGE, Event::NO_EVENT, State::LAMPUSAGE},
@@ -37,8 +39,12 @@ const Timer::transition_t Timer::transitions[] = {
     {State::MAIN, Event::RELEASED_FOCUS, State::FOCUS},
     {State::FOCUS, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::RELEASED_ADJUSTMENT, State::ADJUSTMENT},
+    {State::MAIN, Event::MOVE_TO_ADJUSTMENT_PHASE, State::ADJUSTMENT_PHASE},
+    {State::ADJUSTMENT_PHASE, Event::RELEASED_ADJUSTMENT, State::ADJUSTMENT},
     {State::MAIN, Event::MOVE_TO_MENU, State::MENU},
     {State::ADJUSTMENT, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::ADJUSTMENT, Event::MOVE_TO_ADJUSTMENT_PHASE, State::ADJUSTMENT_PHASE},
+    {State::ADJUSTMENT_PHASE, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MENU, Event::RELEASED_EXIT, State::MAIN},
     {State::MENU, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::RELEASED_TESTSTRIP, State::TESTSTRIP},
@@ -46,7 +52,9 @@ const Timer::transition_t Timer::transitions[] = {
     {State::MAIN, Event::MOVE_TO_PREPARE, State::PREPARE},
     {State::PREPARE, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::LONGPRESS_TESTSTRIP, State::METRONOME},
+    {State::ADJUSTMENT_PHASE, Event::RELEASED_TESTSTRIP, State::METRONOME},
     {State::METRONOME, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::METRONOME, Event::MOVE_TO_ADJUSTMENT_PHASE, State::ADJUSTMENT_PHASE},
     {State::MAIN, Event::MOVE_TO_PAUSE, State::PAUSE},
     {State::TESTSTRIP, Event::MOVE_TO_PAUSE, State::PAUSE},
     {State::PAUSE, Event::MOVE_TO_MAIN, State::MAIN},
@@ -64,6 +72,7 @@ const Timer::transition_t Timer::transitions[] = {
     {State::LINEAR, Event::RELEASED_FOCUS, State::FOCUS},
     {State::FOCUS, Event::MOVE_TO_LINEAR, State::LINEAR},
     {State::MAIN, Event::MOVE_TO_PAPER, State::PAPER},
+    {State::ADJUSTMENT_PHASE, Event::MOVE_TO_PAPER, State::PAPER},
     {State::PAPER, Event::NO_EVENT, State::PAPER},
     {State::PAPER, Event::MOVE_TO_MAIN, State::MAIN},
 };
@@ -111,6 +120,13 @@ void Timer::Run(){
 void Timer :: processEvent() {
     for (const auto& transition : transitions) {
         if (currentState == transition.from && nextEvent == transition.event) {
+            if (transition.from == State::ADJUSTMENT_PHASE && transition.to == State::ADJUSTMENT) {
+                adjustmentEnteredFromFase = true;
+            }
+
+            if (transition.from != transition.to) {
+                previousState = currentState;
+            }
             currentState = transition.to;
             nextEvent = Event::NO_EVENT;
             return;
@@ -122,8 +138,12 @@ void Timer::state_main_run() {
 
     if (enlarger.getIsExposureFinished()) {
         if (paper.getEnabled() && exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime()) {
-            paper.reset();
-            insertEvent(Event::MOVE_TO_PAPER);
+            if (exposure.getSize() == 0) {
+                insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
+            } else {
+                paper.reset();
+                insertEvent(Event::MOVE_TO_PAPER);
+            }
         }
         enlarger.setIsExposureFinished(false);
         return;
@@ -223,17 +243,31 @@ void Timer::state_adjustment_run() {
             exposure.setAdjustmentUp();
             break;
         case Event::LONGPRESS_ADJ:
-            buzzer.doubleBuzz();
-            exposure.saveAdjustment();
-            display.drawAdjustmentAdded();
+            if (!adjustmentEnteredFromFase) {
+                buzzer.doubleBuzz();
+                exposure.saveAdjustment();
+                display.drawAdjustmentAdded();
+            }
             break;
         case Event::RELEASED_ADJUSTMENT:
             exposure.nextAdjustment();
             break;
         case Event::RELEASED_EXIT:
+            {
+                const unsigned long now = millis();
+                if (now - lastAdjustmentExitMs < adjustmentExitDebounceMs) {
+                    break;
+                }
+                lastAdjustmentExitMs = now;
+            }
             exposure.resetIndex();
             exposure.setMode(Mode::EXPOSURE);
-            insertEvent(Event::MOVE_TO_MAIN);
+            if (adjustmentEnteredFromFase) {
+                adjustmentEnteredFromFase = false;
+                insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
+            } else {
+                insertEvent(Event::MOVE_TO_MAIN);
+            }
             break;
         case Event::RELEASED_MENU:
             exposure.switchAdjPrecision();
@@ -262,6 +296,30 @@ void Timer::state_adjustment_run() {
         }
     }
     if (enlarger.getState() == Lamp::ON) enlarger.run();
+}
+
+void Timer::state_adjustment_phase_run() {
+    if (enlarger.getState() == Lamp::OFF) {
+        display.drawAdjustmentPhase();
+    }
+
+    if (nextEvent == Event::PRESSED_START || nextEvent == Event::RELEASED_START) {
+        paper.reset();
+        insertEvent(Event::MOVE_TO_PAPER);
+        return;
+    }
+
+    if (nextEvent == Event::RELEASED_EXIT) {
+        const unsigned long now = millis();
+        if (now - lastAdjustmentPhaseExitMs < adjustmentPhaseExitDebounceMs) {
+            return;
+        }
+        lastAdjustmentPhaseExitMs = now;
+        exposure.resetIndex();
+        exposure.setMode(Mode::EXPOSURE);
+        insertEvent(Event::MOVE_TO_MAIN);
+        return;
+    }
 }
 
 void Timer::state_teststrip_run(){
@@ -342,6 +400,8 @@ void Timer::state_metronome_run() {
     case Event::RELEASED_EXIT:
         if (exposure.getMode() == Mode::LINEAR) {
             insertEvent(Event::MOVE_TO_LINEAR);
+        } else if (previousState == State::ADJUSTMENT_PHASE) {
+            insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
         } else if (enlarger.getState() == Lamp::OFF) insertEvent(Event::MOVE_TO_MAIN);
         break;
     default:

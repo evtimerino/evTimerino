@@ -419,6 +419,14 @@ void Display::drawPaper(uint16_t timeCounter, DevType devType) {
     oled.sendBuffer();
 }
 
+void Display::drawAdjustmentPhase() {
+    oled.clearBuffer();
+    oled.drawStr(0, 30, "ADJUSTMENTS");
+    oled.drawStr(0, 42, "PHASE");
+    oled.drawStr(0, 64, "START > PAPER");
+    oled.sendBuffer();
+}
+
 void Display::drawPrecision(uint8_t precision) {   
     oled.clearBuffer();
     oled.drawStr(0, 64, "PRECISION");

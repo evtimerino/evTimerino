@@ -152,7 +152,7 @@ void Paper::run() {
         }
     }
 
-    if (timeCounter > 0 && timeCounter <= 100 && timeCounter % 10 == 0 && timeCounter != lastSecondAnnouncedTimeCounter) {
+    if (!factorialSamplingActive && timeCounter > 0 && timeCounter <= 100 && timeCounter % 10 == 0 && timeCounter != lastSecondAnnouncedTimeCounter) {
         buzz.metronome();
         lastSecondAnnouncedTimeCounter = timeCounter;
     } else if (timeCounter > 0 && timeCounter % 300 == 0 && timeCounter != lastAnnouncedTimeCounter) {
@@ -220,6 +220,7 @@ void Paper::startDevelopment() {
     fixerTimeCounterActive = false;
     factorialSamplingActive = false;
     devElapsedTicks = 0;
+    buzz.doubleBuzz();
     lastAnnouncedTimeCounter = 0xFFFF;
     lastSecondAnnouncedTimeCounter = 0xFFFF;
 }
@@ -260,6 +261,7 @@ void Paper::handleStartPress() {
         stopTimeCounterActive = false;
         fixerTimeCounterActive = false;
         factorialSamplingActive = false;
+        buzz.doubleBuzz();
         lastAnnouncedTimeCounter = 0xFFFF;
         lastSecondAnnouncedTimeCounter = 0xFFFF;
     }

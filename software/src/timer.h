@@ -49,7 +49,12 @@ private:
     
     State currentState;
     State previousState = State::MAIN;
+    bool adjustmentEnteredFromFase = false;
     bool stateCountup = false;
+    unsigned long lastAdjustmentExitMs = 0;
+    static constexpr unsigned long adjustmentExitDebounceMs = 120;
+    unsigned long lastAdjustmentPhaseExitMs = 0;
+    static constexpr unsigned long adjustmentPhaseExitDebounceMs = 120;
     
     Event currentEvent;
     Event nextEvent;
@@ -61,6 +66,7 @@ private:
     void state_teststrip_run();
     void state_menu_run();
     void state_adjustment_run();
+    void state_adjustment_phase_run();
     void state_focus_run();
     void state_prepare_run();
     void state_metronome_run();

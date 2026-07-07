@@ -61,6 +61,7 @@ public:
     void drawLampUsage(uint16_t hours, uint8_t minutes);
     void drawLinear(uint16_t timeCounter, LinearPrecision precision);
     void drawPaper(uint16_t timeCounter, DevType devType);
+    void drawAdjustmentPhase();
     void drawPrepare();
     void drawFocus();
     void drawPause();
