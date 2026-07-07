@@ -56,7 +56,9 @@ void Enlarger::run() {
         updateSafeLight();
         buzzer.endExposure();
         if (exposure.getMode() != Mode::LINEAR) exposure.next();
-        isExposureFinished = true;
+        if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime()) {
+            isExposureFinished = true;
+        }
         return;
     }
 }

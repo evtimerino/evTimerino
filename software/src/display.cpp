@@ -157,8 +157,11 @@ Display::~Display()
 {
 }
 
-void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area, uint8_t value) {
+void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area, uint8_t value, uint8_t precision) {
     oled.clearBuffer();
+    char buffer[10];
+    sprintf(buffer, "P: 1/%d", precision);
+    oled.drawStr(0, 52, buffer);
     char s[13];
     switch (adj)
     {
@@ -178,11 +181,11 @@ void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area,
     uint8_t tenSeconds = (timeCounter / 100) % 10;
     uint8_t hundredSeconds = (timeCounter / 1000) % 10;
 
-    drawDigit(102, 0, tenth);
-    if (timeCounter <= 9) drawDigit(66, 0, 0);
-    if (timeCounter > 9) drawDigit(66, 0, seconds);
-    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
-    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    drawMediumDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawMediumDigit(66, 0, 0);
+    if (timeCounter > 9) drawMediumDigit(66, 0, seconds);
+    if (timeCounter > 99) drawMediumDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawMediumDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
     
     int8_t adj_value = value;
@@ -195,8 +198,11 @@ void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area,
 }
 
 
-void Display::drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number) {
+void Display::drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number, uint8_t precision) {
     oled.clearBuffer();
+    char buffer[10];
+    sprintf(buffer, "P: 1/%d", precision);
+    oled.drawStr(0, 52, buffer);
     char s[13];
     number++;
     switch (type)
@@ -222,11 +228,11 @@ void Display::drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment t
     uint8_t tenSeconds = (timeCounter / 100) % 10;
     uint8_t hundredSeconds = (timeCounter / 1000) % 10;
 
-    drawDigit(102, 0, tenth);
-    if (timeCounter <= 9) drawDigit(66, 0, 0);
-    if (timeCounter > 9) drawDigit(66, 0, seconds);
-    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
-    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    drawMediumDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawMediumDigit(66, 0, 0);
+    if (timeCounter > 9) drawMediumDigit(66, 0, seconds);
+    if (timeCounter > 99) drawMediumDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawMediumDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
 
     int8_t adj_value = value;

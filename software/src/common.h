@@ -25,6 +25,7 @@
 enum class Event {
     NO_EVENT,
     RELEASED_FOCUS,
+    PRESSED_START,
     RELEASED_START,
     RELEASED_UP,
     RELEASED_DOWN,

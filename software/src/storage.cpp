@@ -1,7 +1,7 @@
 #include "common.h"
 #include <storage.h>
 
-Storage::Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l, Paper& pa) : display(o), preferences(p), exposure(e), buzzer(b), enlarger(l), paper(pa) {
+Storage::Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l, Keypad& k, Paper& pa) : display(o), preferences(p), exposure(e), buzzer(b), enlarger(l), keypad(k), paper(pa) {
 }
 
 Storage::~Storage() {}
@@ -14,6 +14,8 @@ void Storage::load() {
     display.updateBrightness(preferences.getInt("brightness", 0));
     uint8_t safelightState = preferences.getInt("safelight", 0);
     uint8_t startTime = preferences.getInt("startTime", 1);
+    uint8_t startTrigger = preferences.getInt("startTrig", 0);
+    keypad.setStartOnRelease(startTrigger != 0);
     switch (startTime)
     {
     case 0:
@@ -167,6 +169,12 @@ void Storage::storeSafelight(uint8_t s) {
 void Storage::storeStartTime(uint8_t s) {
     preferences.begin("data", false);
     preferences.putInt("startTime", s);
+    preferences.end();
+}
+
+void Storage::storeStartTrigger(uint8_t t) {
+    preferences.begin("data", false);
+    preferences.putInt("startTrig", t);
     preferences.end();
 }
 

@@ -23,7 +23,7 @@ Buzzer buzzer = Buzzer();
 Exposure exposure = Exposure(buzzer);
 Enlarger enlarger = Enlarger(oled, buzzer, exposure);
 Paper paper = Paper(buzzer, oled);
-Storage storage = Storage(oled, preferences, exposure, buzzer, enlarger, paper);
+Storage storage = Storage(oled, preferences, exposure, buzzer, enlarger, keypad, paper);
 TimerMenu::Menu menu(keypad, exposure, u8g2, enlarger, buzzer, oled, storage, paper);
 Timer timer = Timer(oled, keypad, buzzer, exposure, enlarger, menu, storage, paper);
 

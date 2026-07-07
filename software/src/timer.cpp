@@ -79,7 +79,7 @@ void Timer::insertEvent(Event event){
 }
 
 void Timer::processInput() {
-    if (currentState == State::MAIN && enlarger.getState() == Lamp::ON && currentEvent != Event::RELEASED_START) {
+    if (currentState == State::MAIN && enlarger.getState() == Lamp::ON && currentEvent != Event::RELEASED_START && currentEvent != Event::PRESSED_START) {
         nextEvent = currentEvent = Event::NO_EVENT; 
         return;
     }
@@ -117,7 +117,7 @@ void Timer :: processEvent() {
 void Timer::state_main_run() {
 
     if (enlarger.getIsExposureFinished()) {
-        if (paper.getEnabled()) {
+        if (paper.getEnabled() && exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime()) {
             paper.reset();
             insertEvent(Event::MOVE_TO_PAPER);
         }
@@ -138,11 +138,12 @@ void Timer::state_main_run() {
     }
     if (enlarger.getState() == Lamp::OFF) {
         if (exposure.getBaseTime()) display.drawMain(exposure.getBaseTimeCounter(), exposure.getPrecision(), exposure.getDodgeSize(), exposure.getBurnSize(), enlarger.getPrepare());
-        else display.drawAdjustment(exposure.getAdjustmentType(), exposure.getAdjustmentTimeCounter(), exposure.getAdjustmentArea(), exposure.getAdjustmentValue());
+        else display.drawAdjustment(exposure.getAdjustmentType(), exposure.getAdjustmentTimeCounter(), exposure.getAdjustmentArea(), exposure.getAdjustmentValue(), exposure.getAdjPrecision());
     }
 
     switch (nextEvent)
     {
+    case Event::PRESSED_START:
     case Event::RELEASED_START:
         if (enlarger.getState() == Lamp::OFF) {
             enlarger.startExposure();
@@ -163,8 +164,9 @@ void Timer::state_main_run() {
         exposure.resetTestStrip();
         break;
     case Event::LONGPRESS_DOWN:
-        exposure.splitSteps();
-        buzzer.doubleBuzz();
+        if (enlarger.getState() == Lamp::OFF && exposure.splitSteps()) {
+            buzzer.doubleBuzz();
+        }
         break;
     case Event::LONGPRESS_EXIT:
         exposure.clear();
@@ -206,9 +208,8 @@ void Timer::state_focus_run() {
 
 void Timer::state_adjustment_run() {
     if (enlarger.getState() == Lamp::OFF) {
-        if (exposure.isNewAdjustment()) display.drawNewAdjustment(exposure.
-            getNewAdjustmentTimeCounter(), exposure.getNewAdjustmentValue(), exposure.getNewAdjustmentType(), exposure.getSize());
-        else display.drawAdjustment(exposure.getAdjustmentType(), exposure.getAdjustmentTimeCounter(), exposure.getAdjustmentArea(), exposure.getAdjustmentValue());
+        if (exposure.isNewAdjustment()) display.drawNewAdjustment(exposure.getNewAdjustmentTimeCounter(), exposure.getNewAdjustmentValue(), exposure.getNewAdjustmentType(), exposure.getSize(), exposure.getAdjPrecision());
+        else display.drawAdjustment(exposure.getAdjustmentType(), exposure.getAdjustmentTimeCounter(), exposure.getAdjustmentArea(), exposure.getAdjustmentValue(), exposure.getAdjPrecision());
         switch (nextEvent)
         {
         case Event::RELEASED_DOWN:
@@ -231,8 +232,10 @@ void Timer::state_adjustment_run() {
             insertEvent(Event::MOVE_TO_MAIN);
             break;
         case Event::RELEASED_MENU:
-            //exposure.AdjPrecisionSwitch();
+            exposure.switchAdjPrecision();
+            buzzer.doubleBuzz();
             break;
+        case Event::PRESSED_START:
         case Event::RELEASED_START:
             exposure.setMode(Mode::ADJUSTMENT);
             if (exposure.isNewAdjustment() && exposure.isNewAdjustmentBurn() && enlarger.getState() == Lamp::OFF) {
@@ -263,6 +266,7 @@ void Timer::state_teststrip_run(){
     }
     switch (nextEvent)
     {
+    case Event::PRESSED_START:
     case Event::RELEASED_START:
         if (enlarger.getState() == Lamp::OFF) {
             enlarger.startExposure();
@@ -299,7 +303,7 @@ void Timer::state_teststrip_run(){
 
 void Timer::state_prepare_run() {
         display.drawPrepare();
-    if (nextEvent == Event::RELEASED_START) {
+    if (nextEvent == Event::RELEASED_START || nextEvent == Event::PRESSED_START) {
         buzzer.exposure();
         switch (enlarger.getStatePrepare())
         {
@@ -321,6 +325,7 @@ void Timer::state_metronome_run() {
     if (enlarger.getMetronomeTimeCounter() == 0) display.drawMetronome(enlarger.getMetronomeTimeCounter());
     switch (nextEvent)
     {
+    case Event::PRESSED_START:
     case Event::RELEASED_START:
         if (enlarger.getState() == Lamp::OFF) {
             enlarger.switchOn();
@@ -349,7 +354,7 @@ void Timer::state_menu_run() {
 
 void Timer::state_pause_run() {
         display.drawPause();
-    if (nextEvent == Event::RELEASED_START) {
+    if (nextEvent == Event::RELEASED_START || nextEvent == Event::PRESSED_START) {
         enlarger.switchOn();
         if (exposure.getMode() == Mode::EXPOSURE) insertEvent(Event::MOVE_TO_MAIN);
         if (exposure.getMode() == Mode::TESTSTRIP) insertEvent(Event::MOVE_TO_TESTSTRIP);
@@ -411,6 +416,7 @@ void Timer::state_linear_run() {
     }
     switch (nextEvent)
     {
+    case Event::PRESSED_START:
     case Event::RELEASED_START:
         if (enlarger.getState() == Lamp::OFF) {
             enlarger.startExposure();
@@ -451,6 +457,7 @@ void Timer::state_paper_run() {
         enlarger.setIsExposureFinished(false);
         insertEvent(Event::MOVE_TO_MAIN);
         break;
+    case Event::PRESSED_START:
     case Event::RELEASED_START:
         if (paper.getState() == Dev::OFF) {
             paper.startDevelopment();

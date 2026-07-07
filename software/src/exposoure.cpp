@@ -6,6 +6,9 @@ Exposure::Exposure(Buzzer& b) : buzzer(b)  {
     newAdj->timeCounter = 0;
     newAdj->value = 0;
     newAdj->area = 0;
+    newAdj->precision = 3;
+    newAdj->precisionIdx = 1;
+    newAdj->steps = 0;
     newAdj->type = Adjustment::NONE;
 }
 
@@ -17,6 +20,9 @@ void Exposure::resetNewAdj() {
     newAdj->timeCounter = 0;
     newAdj->value = 0;
     newAdj->area = 0;
+    newAdj->precision = 3;
+    newAdj->precisionIdx = 1;
+    newAdj->steps = 0;
     newAdj->type = Adjustment::NONE;
 }
 
@@ -37,7 +43,31 @@ void Exposure::clear() {
     position = 0;
     dodgeSize = 0;
     burnSize = 0;
+    switch (precisionMultiplier)
+    {
+    case 2:
+        baseTimeCounter = 40;
+        break;
+    case 3:
+        baseTimeCounter = 80;
+        break;
+    case 4:
+        baseTimeCounter = 160;
+        break;
+    case 5:
+        baseTimeCounter = 320;
+        break;
+    case 6:
+        baseTimeCounter = 640;
+        break;
+    default:
+        break;
+    }
     baseTimeCounterAdjusted = baseTimeCounter;
+    precisionIdx = 2;
+    newPrecisionIdx = precisionIdx;
+    precision = precisions[precisionIdx];
+    steps = precision * precisionMultiplier;
     resetNewAdj();
 }
 
@@ -55,9 +85,12 @@ void Exposure::restart() {
 }
 
 void Exposure::setAdjustmentUp() {
+    uint8_t adjPrecision = isNewAdjustment() ? newAdj->precision : itr->precision;
+    uint8_t unit = genUnit(adjPrecision);
     if (itr != nullptr) {
         if (itr->type == Adjustment::BURN) {
-            float newPower = (float)(steps + (itr->value + 1)) / (float)precision;
+            buzzer.doubleBuzz();
+            float newPower = (float)(steps + ((unit * itr->value) + unit)) / (float)precision;
             uint16_t newTime = lrint(10*pow(2.0f,newPower));
             if (newTime <= 5120) {
                 itr->timeCounter = newTime - baseTimeCounter;
@@ -65,12 +98,11 @@ void Exposure::setAdjustmentUp() {
             }
             return;
         }
-
         if (itr->type == Adjustment::DODGE) {
-            float newPower = (float)(steps - (itr->value - 1)) / (float)precision;
+            float newPower = (float)(steps - ((unit * itr->value) + unit)) / (float)precision;
             uint16_t newTime = lrint(10*pow(2.0f,newPower));
             if (itr->value > 1) {
-                float prevPower = (float)(steps - (itr->value)) / (float)precision;
+                float prevPower = (float)(steps - (unit * itr->value)) / (float)precision;
                 int16_t prevTime = lrint(10*pow(2.0f,prevPower));
                 baseTimeCounterAdjusted = baseTimeCounterAdjusted + ((baseTimeCounter - prevTime) - (baseTimeCounter - newTime));
                 itr->timeCounter = baseTimeCounter - newTime;
@@ -79,17 +111,19 @@ void Exposure::setAdjustmentUp() {
             return;
         }
     } else {
+        if (newAdj->type == Adjustment::NONE) {
+            newAdj->type = Adjustment::BURN;
+        }
         if (newAdj->type == Adjustment::BURN || newAdj->type == Adjustment::NONE) {
-            float newPower = (float)(steps + (newAdj->value + 1)) / (float)precision;
+            float newPower = (float)(steps + ((unit * newAdj->value) + unit)) / (float)precision;
             uint16_t newTime = lrint(10*pow(2.0f,newPower));
-            if (newAdj->type == Adjustment::NONE) newAdj->type = Adjustment::BURN;
             if (newTime <= 5120) {
                 newAdj->timeCounter = newTime - baseTimeCounter;
                 newAdj->value++;
             }
         }
         if (newAdj->type == Adjustment::DODGE) {
-            float newPower = (float)(steps - (newAdj->value - 1)) / (float)precision;
+            float newPower = (float)(steps - ((unit * newAdj->value) + unit)) / (float)precision;
             uint16_t newTime = lrint(10*pow(2.0f,newPower));
             newAdj->timeCounter = baseTimeCounter - newTime;
             newAdj->value--;
@@ -102,12 +136,14 @@ void Exposure::setAdjustmentUp() {
 }
 
 void Exposure::setAdjustmentDown() {
+    uint8_t adjPrecision = isNewAdjustment() ? newAdj->precision : itr->precision;
+    uint8_t unit = genUnit(adjPrecision);
     if (itr != nullptr) {
         if (itr->type == Adjustment::DODGE) {
-            float newPower = (float)(steps - (itr->value + 1)) / (float)precision;
+            float newPower = (float)(steps - ((unit * itr->value) + unit)) / (float)precision;
             int16_t newTime = lrint(10*pow(2.0f,newPower));
             if ((baseTimeCounterAdjusted - newTime)  > 10) {
-                float prevPower = (float)(steps - (itr->value)) / (float)precision;
+                float prevPower = (float)(steps - (unit * itr->value)) / (float)precision;
                 int16_t prevTime = lrint(10*pow(2.0f,prevPower));
                 baseTimeCounterAdjusted = baseTimeCounterAdjusted - ((baseTimeCounter - newTime) - (baseTimeCounter - prevTime));
                 itr->timeCounter = baseTimeCounter - newTime;
@@ -116,7 +152,7 @@ void Exposure::setAdjustmentDown() {
         }
 
         if (itr->type == Adjustment::BURN) {
-            float newPower = (float)(steps + (itr->value - 1)) / (float)precision;
+            float newPower = (float)(steps + ((unit * itr->value) - unit)) / (float)precision;
             uint16_t newTime = lrint(10*pow(2.0f,newPower));
             if (itr->value >1 ) {
                 itr->timeCounter = newTime - baseTimeCounter;
@@ -124,8 +160,11 @@ void Exposure::setAdjustmentDown() {
             }
         }
     } else {
+        if (newAdj->type == Adjustment::NONE) {
+            newAdj->type = Adjustment::DODGE;
+        }
         if (newAdj->type == Adjustment::DODGE || newAdj->type == Adjustment::NONE) {
-            float newPower = (float)(steps - (newAdj->value + 1)) / (float)precision;
+            float newPower = (float)(steps - ((unit * newAdj->value) + unit)) / (float)precision;
             int16_t newTime = lrint(10*pow(2.0f,newPower));
             if (baseTimeCounterAdjusted -(baseTimeCounter - newTime) > 10) {
                 if (newAdj->type == Adjustment::NONE) newAdj->type = Adjustment::DODGE;
@@ -134,7 +173,7 @@ void Exposure::setAdjustmentDown() {
             }
         }
         if (newAdj->type == Adjustment::BURN) {
-            float newPower = (float)(steps + (newAdj->value - 1)) / (float)precision;
+            float newPower = (float)(steps + ((unit * newAdj->value) - unit)) / (float)precision;
             uint16_t newTime = lrint(10*pow(2.0f,newPower));
             newAdj->timeCounter = newTime - baseTimeCounter;
             newAdj->value--;
@@ -156,6 +195,10 @@ void Exposure::saveAdjustment() {
     adj->timeCounter = newAdj->timeCounter;
     adj->value = newAdj->value;
     adj->type = newAdj->type;
+    adj->precision = newAdj->precision;
+    adj->precisionIdx = newAdj->precisionIdx;
+    adj->steps = newAdj->steps;
+    adj->next = nullptr;
 
     if (head == nullptr) {
         head = adj;
@@ -309,7 +352,7 @@ void Exposure::nextAdjustment() {
 }
 
 uint16_t Exposure::getNewAdjustmentTimeCounter() {
-    return newAdj ->timeCounter;
+    return newAdj->timeCounter;
 }
 
 uint8_t Exposure::getNewAdjustmentValue() {
@@ -360,6 +403,16 @@ void Exposure::next(){
     }
 }
 
+bool Exposure::lastAdj() {
+    if (itr == nullptr) {
+        return true;
+    }
+    if (itr->next == nullptr) {
+        return true;
+    }
+    return false;
+}
+
 void Exposure::setBaseExposureUp() {
     steps++;
     float power = (float)steps / (float)precision;
@@ -381,16 +434,23 @@ void Exposure::updateAdjustments() {
     baseTimeCounterAdjusted = baseTimeCounter;
     while (newItr != nullptr)
     {
+        if (newItr->precision == 0) {
+            newItr = newItr->next;
+            continue;
+        }
+
+        uint8_t unit = genUnit(newItr->precision);
+
         switch (newItr->type)
         {
         case Adjustment::DODGE:
-            newPower = (float)(steps - newItr->value) / (float)precision;
+            newPower = (float)(steps - (unit * newItr->value)) / (float)precision;
             newTime = lrint(10*pow(2.0f,newPower));
             newItr->timeCounter = baseTimeCounter - newTime;
             baseTimeCounterAdjusted -= newItr->timeCounter;
             break;
         case Adjustment::BURN:
-            newPower = (float)(steps + newItr->value) / (float)precision;
+            newPower = (float)(steps + (unit * newItr->value)) / (float)precision;
             newTime = lrint(10*pow(2.0f,newPower));
             newItr->timeCounter = newTime - baseTimeCounter;;
             break;
@@ -399,31 +459,6 @@ void Exposure::updateAdjustments() {
         }
         newItr = newItr->next;
     }
-}
-
-void Exposure::reset() {
-    clear();
-    switch (precisionMultiplier)
-    {
-    case 2:
-        baseTimeCounter = 40;
-        break;
-    case 3:
-        baseTimeCounter = 80;
-        break;
-    case 4:
-        baseTimeCounter = 160;
-        break;
-    case 5:
-        baseTimeCounter = 320;
-        break;
-    case 6:
-        baseTimeCounter = 640;
-        break;
-    default:
-        break;
-    }
-    baseTimeCounterAdjusted = baseTimeCounter;
 }
 
 bool Exposure::getBaseTime() {
@@ -633,7 +668,7 @@ void Exposure::setPrecisionMultiplier(uint8_t s) {
 
 void Exposure::setStartTime(uint8_t st, bool runtime) {
     precisionMultiplier = st;
-    reset();
+    clear();
     steps = precision * precisionMultiplier;
 }
 
@@ -695,37 +730,35 @@ void Exposure::updatePrecision() {
     if (newPrecisionIdx != precisionIdx) {
         precisionIdx = newPrecisionIdx;
         setPrecision(precisionIdx);
-        reset();
+        clear();
     }
-    if ((precision != 32 || precision != 48) && !splitState) {
-        splitState = true;
-    }
+    splitState = precisionIdx < 5;
 }
 
-void Exposure::splitSteps() {
-    if (!splitState) {
+bool Exposure::splitSteps() {
+    if (!splitState || precisionIdx >= 5) {
+        splitState = false;
         buzzer.tripleBuzz();
-        return;
+        return false;
     }
-    precisionIdx = precisionIdx + 2;
+
+    uint8_t prevPrecision = precision;
+    precisionIdx = precisionIdx + 1;
     newPrecisionIdx = precisionIdx;
     precision = precisions[precisionIdx];
-    steps = (steps * 2) + 1;
+    steps = lrint(((float)steps * (float)precision) / (float)prevPrecision) + 1;
     float power = ((float)steps) / (float)precision;
     baseTimeCounter = lrint(10*pow(2.0f,power));
     baseTimeCounterAdjusted = baseTimeCounter;
     if (head != nullptr) {
-        node *newItr = head;
-        while (newItr != nullptr)
-        {
-            newItr->value = newItr->value * 2;
-            newItr = newItr->next;
-        }
         updateAdjustments();
     }
-    if (precision == 32 || precision == 48) {
+
+    if (precisionIdx >= 5) {
         splitState = false;
     }
+
+    return true;
 }
 
 void Exposure::setLinearUp() {
@@ -819,30 +852,31 @@ void Exposure::resetTestStrip() {
     tsSteps = steps;
 }
 
-/*
-void Exposure::AdjPrecisionSwitch() {
-    switch (adjPrecisionIdx) {
-    case 0:
-        adjPrecisionIdx = 1;
-        break;
-    case 1:
-        adjPrecisionIdx = 2;
-        break;
-    case 2:
-        adjPrecisionIdx = 0;
-        break;
-    default:
-        break;
+void Exposure::switchAdjPrecision() {
+    if (!isNewAdjustment()) {
+        return;
     }
-    adjPrecision = precisions[adjPrecisionIdx];
-    newAdj->precision = adjPrecision;
+
+    newAdj->precisionIdx++;
+    if (newAdj->precisionIdx > 2) {
+        newAdj->precisionIdx = 0;
+    }
+
+    newAdj->precision = precisions[newAdj->precisionIdx];
     newAdj->timeCounter = 0;
     newAdj->value = 0;
-    newAdj->steps = 0;
-    adjIncrement = precision / adjPrecision;
+    newAdj->area = 0;
+    newAdj->type = Adjustment::NONE;
 }
 
 uint8_t Exposure::getAdjPrecision() {
-    return adjPrecision;
+    if (isNewAdjustment()) {
+        return newAdj->precision;
+    }
+    return itr->precision;
 }
-*/
+
+uint8_t Exposure::genUnit(uint8_t adjPrecision) {
+
+    return precision / adjPrecision;
+}

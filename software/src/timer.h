@@ -50,29 +50,6 @@ private:
     State currentState;
     State previousState = State::MAIN;
     bool stateCountup = false;
-
-    uint16_t lastPaperDisplayCounter = 0xFFFF;
-    uint8_t lastPrecisionDisplay = 0xFF;
-    bool mainDisplayCacheValid = false;
-    bool mainDisplayCacheBaseTime = false;
-    uint16_t mainDisplayBaseTimeCounter = 0;
-    uint8_t mainDisplayPrecision = 0;
-    uint8_t mainDisplayDodgeCount = 0;
-    uint8_t mainDisplayBurnCount = 0;
-    bool mainDisplayPrepare = false;
-    Adjustment mainDisplayAdjType = Adjustment::NONE;
-    uint16_t mainDisplayAdjTimeCounter = 0;
-    uint8_t mainDisplayAdjArea = 0;
-    uint8_t mainDisplayAdjValue = 0;
-    uint8_t mainDisplayAdjPrecision = 0;
-    bool adjustmentDisplayCacheValid = false;
-    bool adjustmentDisplayIsNew = false;
-    uint16_t adjustmentDisplayTimeCounter = 0;
-    uint8_t adjustmentDisplayValue = 0;
-    Adjustment adjustmentDisplayType = Adjustment::NONE;
-    uint8_t adjustmentDisplayNumber = 0;
-    uint8_t adjustmentDisplayPrecision = 0;
-    uint8_t adjustmentDisplayArea = 0;
     
     Event currentEvent;
     Event nextEvent;

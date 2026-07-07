@@ -13,6 +13,8 @@ namespace TimerMenu {
     uint8_t safelightCurrentSelection = 0;
     uint8_t startTimePreviousSelection = 0;
     uint8_t startTimeCurrentSelection = 0;
+    uint8_t startTriggerPreviousSelection = 1;
+    uint8_t startTriggerCurrentSelection = 1;
     uint8_t buzzerPreviousSelection = 0;
     uint8_t buzzerCurrentSelection = 0;
     uint8_t preparePreviousSelection = 0;
@@ -78,6 +80,7 @@ namespace TimerMenu {
         MUIF_VARIABLE("RT", &teststripCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RU", &safelightCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RP", &startTimeCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RX", &startTriggerCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RB", &buzzerCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RE", &prepareCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RC", &lampUsageCurrentSelection, mui_u8g2_u8_radio_wm_pi),
@@ -105,6 +108,7 @@ namespace TimerMenu {
             MUI_12 "Brightness|"
             MUI_13 "Safelight|"
             MUI_14 "Start Time|"
+            MUI_24 "Start Trigger|"
             MUI_15 "Buzzer|"
             MUI_16 "Prepare|"
             MUI_17 "Lamp Usage|"
@@ -171,6 +175,15 @@ namespace TimerMenu {
         MUI_XYAT("RP", 5, 62, 4, "64 sec")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
 
+        MUI_FORM(24)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Start Trigger")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYAT("RX", 5, 22, 0, "On Press")
+        MUI_XYAT("RX", 5, 32, 1, "On Release")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
+
         MUI_FORM(15)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Buzzer")
@@ -204,7 +217,7 @@ namespace TimerMenu {
         MUI_LABEL(5, 8, "Firmware version")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_LABEL(45, 40, "1.2.0")
+        MUI_LABEL(45, 40, "1.3.0-RC01")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
 
         MUI_FORM(19)
@@ -378,6 +391,14 @@ namespace TimerMenu {
             break;
         }
 
+        if (keypad.getStartOnRelease()) {
+            startTriggerPreviousSelection = 1;
+            startTriggerCurrentSelection = 1;
+        } else {
+            startTriggerPreviousSelection = 0;
+            startTriggerCurrentSelection = 0;
+        }
+
         brightnessCurrentSelection = display.getBrightnessLevel();
         brightnessPreviousSelection = brightnessCurrentSelection;
 
@@ -448,7 +469,7 @@ namespace TimerMenu {
     void Menu::update() {
         if (precisionCurrentSelection != precisionPreviousSelection) {
             exposure.setPrecision(precisionCurrentSelection);
-            exposure.reset();
+            exposure.clear();
             precisionPreviousSelection = precisionCurrentSelection;
             storage.storePrecision(precisionCurrentSelection);
             isUpdate = true;
@@ -521,6 +542,13 @@ namespace TimerMenu {
             }
             storage.storeStartTime(startTimeCurrentSelection);
             startTimePreviousSelection = startTimeCurrentSelection;
+            isUpdate = true;
+        }
+        if (startTriggerCurrentSelection != startTriggerPreviousSelection) {
+            bool startOnRelease = (startTriggerCurrentSelection == 1);
+            keypad.setStartOnRelease(startOnRelease);
+            storage.storeStartTrigger(startTriggerCurrentSelection);
+            startTriggerPreviousSelection = startTriggerCurrentSelection;
             isUpdate = true;
         }
         if (buzzerCurrentSelection != buzzerPreviousSelection) {

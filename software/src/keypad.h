@@ -16,6 +16,8 @@ private:
     byte lastButtonState = LOW;
     unsigned long debounceDuration = 20; 
     unsigned long lastMainButtonStateChange = 0;
+    bool pressEdge = false;
+    bool longPressHandled = false;
     
 public:
     PushButton(uint8_t p);
@@ -23,6 +25,7 @@ public:
     void scan();
     void scanLongPress();
     Button released();
+    bool consumePressEdge();
 };
 
 const uint8_t buttonsNumber = 10;
@@ -55,9 +58,12 @@ private:
     PushButton exit = PushButton(EXIT_PIN);
     PushButton teststrip = PushButton(TESTSTRIP_PIN);
     PushButton buttons[buttonsNumber] = {focus, start, footswitch, footswitch2, up, down, precision, adjustment, exit, teststrip}; 
+    bool startOnRelease = true;
 public:
     Event fetchKeypadEvent();
     void tick();
+    void setStartOnRelease(bool enabled);
+    bool getStartOnRelease();
     Keypad();
     ~Keypad();
     
