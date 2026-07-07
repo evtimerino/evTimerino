@@ -160,7 +160,7 @@ void Paper::run() {
         lastAnnouncedTimeCounter = timeCounter;
     }
 
-    if (timeCounter == 0) {
+    if (timeCounter == 0 && !factorialSamplingActive) {
         buzz.endExposure();
         lastAnnouncedTimeCounter = 0xFFFF;
         lastSecondAnnouncedTimeCounter = 0xFFFF;
@@ -247,6 +247,7 @@ void Paper::handleStartPress() {
         fixerTimeCounterActive = false;
         factorialSamplingActive = true;
         devElapsedTicks = 0;
+        buzz.doubleBuzz();
         lastAnnouncedTimeCounter = 0xFFFF;
         lastSecondAnnouncedTimeCounter = 0xFFFF;
         return;
