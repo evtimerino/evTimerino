@@ -54,6 +54,7 @@ private:
     bool adjustmentEnteredFromFase = false;
     bool adjustmentPhaseFromLinear = false;
     bool ignorePrecisionReleaseUp = false;
+    bool ignoreLinearAdjustmentRelease = false;
     bool stateCountup = false;
     unsigned long lastAdjustmentExitMs = 0;
     static constexpr unsigned long adjustmentExitDebounceMs = 120;

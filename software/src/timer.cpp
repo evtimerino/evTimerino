@@ -223,6 +223,7 @@ void Timer::state_main_run() {
         break;
     case Event::LONGPRESS_ADJ:
         exposure.setMode(Mode::LINEAR);
+        ignoreLinearAdjustmentRelease = true;
         buzzer.doubleBuzz();
         insertEvent(Event::MOVE_TO_LINEAR);
         break;
@@ -546,6 +547,10 @@ void Timer::state_linear_run() {
         buzzer.doubleBuzz();
         break;
     case Event::RELEASED_ADJUSTMENT:
+        if (ignoreLinearAdjustmentRelease) {
+            ignoreLinearAdjustmentRelease = false;
+            break;
+        }
         exposure.switchLinearPrecision();
         break;
     case Event::LONGPRESS_EXIT:
