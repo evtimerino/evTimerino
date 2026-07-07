@@ -58,6 +58,8 @@ void Enlarger::run() {
         if (exposure.getMode() != Mode::LINEAR) exposure.next();
         if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime()) {
             isExposureFinished = true;
+        } else if (exposure.getMode() == Mode::LINEAR) {
+            isExposureFinished = true;
         }
         return;
     }

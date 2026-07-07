@@ -45,6 +45,7 @@ const Timer::transition_t Timer::transitions[] = {
     {State::ADJUSTMENT, Event::MOVE_TO_MAIN, State::MAIN},
     {State::ADJUSTMENT, Event::MOVE_TO_ADJUSTMENT_PHASE, State::ADJUSTMENT_PHASE},
     {State::ADJUSTMENT_PHASE, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::ADJUSTMENT_PHASE, Event::MOVE_TO_LINEAR, State::LINEAR},
     {State::MENU, Event::RELEASED_EXIT, State::MAIN},
     {State::MENU, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::RELEASED_TESTSTRIP, State::TESTSTRIP},
@@ -65,6 +66,7 @@ const Timer::transition_t Timer::transitions[] = {
     {State::MAIN, Event::LONGPRESS_UP, State::PRECISION},
     {State::PRECISION, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::MOVE_TO_LINEAR, State::LINEAR},
+    {State::LINEAR, Event::MOVE_TO_ADJUSTMENT_PHASE, State::ADJUSTMENT_PHASE},
     {State::LINEAR, Event::MOVE_TO_MAIN, State::MAIN},
     {State::LINEAR, Event::RELEASED_TESTSTRIP, State::METRONOME},
     {State::METRONOME, Event::MOVE_TO_LINEAR, State::LINEAR},
@@ -75,6 +77,7 @@ const Timer::transition_t Timer::transitions[] = {
     {State::MAIN, Event::MOVE_TO_PAPER, State::PAPER},
     {State::ADJUSTMENT_PHASE, Event::MOVE_TO_PAPER, State::PAPER},
     {State::PAPER, Event::NO_EVENT, State::PAPER},
+    {State::PAPER, Event::MOVE_TO_LINEAR, State::LINEAR},
     {State::PAPER, Event::MOVE_TO_MAIN, State::MAIN},
 };
 
@@ -125,6 +128,14 @@ void Timer :: processEvent() {
                 adjustmentEnteredFromFase = true;
             }
 
+            if (transition.to == State::ADJUSTMENT_PHASE) {
+                if (transition.from == State::LINEAR) {
+                    adjustmentPhaseFromLinear = true;
+                } else if (transition.from != State::ADJUSTMENT && transition.from != State::METRONOME) {
+                    adjustmentPhaseFromLinear = false;
+                }
+            }
+
             if (transition.from == State::MAIN && transition.to == State::PRECISION && nextEvent == Event::LONGPRESS_UP) {
                 ignorePrecisionReleaseUp = true;
             }
@@ -147,6 +158,7 @@ void Timer::state_main_run() {
                 insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
             } else {
                 paperOpenedFromTeststrip = false;
+                paperOpenedFromLinear = false;
                 paper.reset();
                 insertEvent(Event::MOVE_TO_PAPER);
             }
@@ -267,11 +279,11 @@ void Timer::state_adjustment_run() {
                 lastAdjustmentExitMs = now;
             }
             exposure.resetIndex();
-            exposure.setMode(Mode::EXPOSURE);
             if (adjustmentEnteredFromFase) {
                 adjustmentEnteredFromFase = false;
                 insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
             } else {
+                exposure.setMode(Mode::EXPOSURE);
                 insertEvent(Event::MOVE_TO_MAIN);
             }
             break;
@@ -311,6 +323,8 @@ void Timer::state_adjustment_phase_run() {
 
     if (nextEvent == Event::PRESSED_START || nextEvent == Event::RELEASED_START) {
         paperOpenedFromTeststrip = false;
+        paperOpenedFromLinear = (previousState == State::LINEAR);
+        adjustmentPhaseFromLinear = false;
         paper.reset();
         insertEvent(Event::MOVE_TO_PAPER);
         return;
@@ -323,8 +337,15 @@ void Timer::state_adjustment_phase_run() {
         }
         lastAdjustmentPhaseExitMs = now;
         exposure.resetIndex();
-        exposure.setMode(Mode::EXPOSURE);
-        insertEvent(Event::MOVE_TO_MAIN);
+        const bool returnToLinear = adjustmentPhaseFromLinear || (exposure.getMode() == Mode::LINEAR);
+        if (returnToLinear) {
+            adjustmentPhaseFromLinear = false;
+            exposure.setMode(Mode::LINEAR);
+            insertEvent(Event::MOVE_TO_LINEAR);
+        } else {
+            exposure.setMode(Mode::EXPOSURE);
+            insertEvent(Event::MOVE_TO_MAIN);
+        }
         return;
     }
 }
@@ -360,6 +381,7 @@ void Timer::state_teststrip_run(){
     case Event::RELEASED_ADJUSTMENT:
         if (paper.getEnabled()) {
             paperOpenedFromTeststrip = true;
+            paperOpenedFromLinear = false;
             paper.reset();
             insertEvent(Event::MOVE_TO_PAPER);
         }
@@ -412,10 +434,10 @@ void Timer::state_metronome_run() {
         }
         break;
     case Event::RELEASED_EXIT:
-        if (exposure.getMode() == Mode::LINEAR) {
-            insertEvent(Event::MOVE_TO_LINEAR);
-        } else if (previousState == State::ADJUSTMENT_PHASE) {
+        if (previousState == State::ADJUSTMENT_PHASE) {
             insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
+        } else if (exposure.getMode() == Mode::LINEAR) {
+            insertEvent(Event::MOVE_TO_LINEAR);
         } else if (enlarger.getState() == Lamp::OFF) insertEvent(Event::MOVE_TO_MAIN);
         break;
     default:
@@ -487,6 +509,12 @@ void Timer::state_precision_run() {
 }
 
 void Timer::state_linear_run() {
+    if (enlarger.getIsExposureFinished()) {
+        enlarger.setIsExposureFinished(false);
+        insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
+        return;
+    }
+
     if (enlarger.getLampUsage()) {
         uint16_t counter = enlarger.getLampUsageCounter(false);
         if (counter != 0) {
@@ -542,6 +570,13 @@ void Timer::state_paper_run() {
             exposure.resetBaseTime();
             exposure.setMode(Mode::EXPOSURE);
             paperOpenedFromTeststrip = false;
+            paperOpenedFromLinear = false;
+        }
+        if (paperOpenedFromLinear) {
+            paperOpenedFromLinear = false;
+            exposure.setMode(Mode::LINEAR);
+            insertEvent(Event::MOVE_TO_LINEAR);
+            break;
         }
         insertEvent(Event::MOVE_TO_MAIN);
         break;
@@ -562,6 +597,13 @@ void Timer::state_paper_run() {
                 exposure.resetBaseTime();
                 exposure.setMode(Mode::EXPOSURE);
                 paperOpenedFromTeststrip = false;
+                paperOpenedFromLinear = false;
+            }
+            if (paperOpenedFromLinear) {
+                paperOpenedFromLinear = false;
+                exposure.setMode(Mode::LINEAR);
+                insertEvent(Event::MOVE_TO_LINEAR);
+                return;
             }
             insertEvent(Event::MOVE_TO_MAIN);
         }

@@ -34,6 +34,7 @@ private:
 
     bool prepareState = false;
     bool paperOpenedFromTeststrip = false;
+    bool paperOpenedFromLinear = false;
             
     // State Machine
     struct transition_t
@@ -51,6 +52,7 @@ private:
     State currentState;
     State previousState = State::MAIN;
     bool adjustmentEnteredFromFase = false;
+    bool adjustmentPhaseFromLinear = false;
     bool ignorePrecisionReleaseUp = false;
     bool stateCountup = false;
     unsigned long lastAdjustmentExitMs = 0;
