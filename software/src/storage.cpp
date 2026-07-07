@@ -93,9 +93,13 @@ void Storage::load() {
     lampUsageTenthsCounter = preferences.getUInt("LUTenth", 0);
 
     uint8_t paperEnabled = preferences.getUChar("paperEn", 1);
+    uint8_t paperFactorial = preferences.getUChar("paperFact", 0);
+    uint8_t paperFactor = preferences.getUChar("paperFactor", 2);
     uint16_t paperDev = preferences.getUShort("paperDev", paper.getDevTimeCounter());
     uint16_t paperStop = preferences.getUShort("paperStop", paper.getStopTimeCounter());
     uint16_t paperFix = preferences.getUShort("paperFix", paper.getFixerTimeCounter());
+    paper.setFactorial(paperFactorial != 0);
+    paper.setFactor(paperFactor);
     paper.setDevTimeCounter(paperDev);
     paper.setStopTimeCounter(paperStop);
     paper.setFixerTimeCounter(paperFix);
@@ -199,6 +203,18 @@ void Storage::storeBrightness(uint8_t b) {
 void Storage::storePaperEnabled(uint8_t e) {
     preferences.begin("data", false);
     preferences.putUChar("paperEn", e);
+    preferences.end();
+}
+
+void Storage::storePaperFactorial(uint8_t f) {
+    preferences.begin("data", false);
+    preferences.putUChar("paperFact", f);
+    preferences.end();
+}
+
+void Storage::storePaperFactor(uint8_t f) {
+    preferences.begin("data", false);
+    preferences.putUChar("paperFactor", f);
     preferences.end();
 }
 

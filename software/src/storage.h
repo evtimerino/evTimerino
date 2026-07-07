@@ -45,6 +45,8 @@ public:
     void storePrepare(uint8_t p);
     void storeBrightness(uint8_t b);
     void storePaperEnabled(uint8_t e);
+    void storePaperFactorial(uint8_t f);
+    void storePaperFactor(uint8_t f);
     void storePaperDevTime(uint16_t t);
     void storePaperStopTime(uint16_t t);
     void storePaperFixerTime(uint16_t t);

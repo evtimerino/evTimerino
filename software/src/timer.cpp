@@ -79,6 +79,10 @@ void Timer::insertEvent(Event event){
 }
 
 void Timer::processInput() {
+    if (currentEvent == Event::RELEASED_FOOTSWITCH2 && currentState != State::PAPER) {
+        currentEvent = Event::RELEASED_FOCUS;
+    }
+
     if (currentState == State::MAIN && enlarger.getState() == Lamp::ON && currentEvent != Event::RELEASED_START && currentEvent != Event::PRESSED_START) {
         nextEvent = currentEvent = Event::NO_EVENT; 
         return;
@@ -459,9 +463,8 @@ void Timer::state_paper_run() {
         break;
     case Event::PRESSED_START:
     case Event::RELEASED_START:
-        if (paper.getState() == Dev::OFF) {
-            paper.startDevelopment();
-        }
+    case Event::RELEASED_FOOTSWITCH2:
+        paper.handleStartPress();
         break;
     default:
         break;

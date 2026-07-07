@@ -25,6 +25,7 @@
 enum class Event {
     NO_EVENT,
     RELEASED_FOCUS,
+    RELEASED_FOOTSWITCH2,
     PRESSED_START,
     RELEASED_START,
     RELEASED_UP,
@@ -134,6 +135,7 @@ enum class DevType {
     DEVELOPER,
     STOP_BATH,
     FIXER,
+  FACTORIAL_MEASURE,
 };
 
 #endif

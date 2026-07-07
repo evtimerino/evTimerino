@@ -127,7 +127,7 @@ Event Keypad::fetchKeypadEvent() {
                 if (startOnRelease) newEvent = Event::RELEASED_START;
                 break;
             case FOOTSWITCH2:
-                newEvent = Event::RELEASED_FOCUS;
+                newEvent = Event::RELEASED_FOOTSWITCH2;
                 break;
             case UP:
                 newEvent = Event::RELEASED_UP;

@@ -5,6 +5,27 @@ Paper::Paper(Buzzer& b, Display& d) : buzz(b), display(d) {}
 
 Paper::~Paper() {}
 
+uint16_t Paper::getCurrentDevTargetTicks() {
+    if (factorial) {
+        return static_cast<uint16_t>(devTimeCounter * factor[factorIdx]);
+    }
+    return devTimeCounter;
+}
+
+void Paper::recalcDevRemainingFromElapsed() {
+    if (!(state == Dev::ON && devTimeCounterActive) || factorialSamplingActive) {
+        return;
+    }
+
+    uint16_t target = getCurrentDevTargetTicks();
+    if (devElapsedTicks >= target) {
+        timeCounter = 0;
+        return;
+    }
+
+    timeCounter = static_cast<uint16_t>(target - devElapsedTicks);
+}
+
 void Paper::setEnabled(bool state) {
     enabled = state;
     cycleFinished = false;
@@ -12,15 +33,19 @@ void Paper::setEnabled(bool state) {
     lastAnnouncedTimeCounter = 0xFFFF;
     lastSecondAnnouncedTimeCounter = 0xFFFF;
     if (enabled) {
-        timeCounter = devTimeCounter;
-        devTimeCounterActive = true;
+        timeCounter = factorial ? 0 : getCurrentDevTargetTicks();
+        devTimeCounterActive = false;
         stopTimeCounterActive = false;
         fixerTimeCounterActive = false;
+        factorialSamplingActive = false;
+        devElapsedTicks = 0;
     } else {
         timeCounter = 0;
         devTimeCounterActive = false;
         stopTimeCounterActive = false;
         fixerTimeCounterActive = false;
+        factorialSamplingActive = false;
+        devElapsedTicks = 0;
     }
 }
 
@@ -34,6 +59,7 @@ void Paper::setDevTimeCounterDown() {
 
 void Paper::setDevTimeCounter(uint16_t t) {
     devTimeCounter = (t < 50) ? 50 : t;
+    recalcDevRemainingFromElapsed();
 }
 
 void Paper::setStopTimeCounterUp() {
@@ -62,11 +88,35 @@ void Paper::setFixerTimeCounter(uint16_t t) {
 }
 
 void Paper::setFactorIdxUp() {
-    factorIdx++;
+    if (factorIdx < 8) {
+        factorIdx++;
+    }
 }
 
 void Paper::setFactorIdxDown() {
-    factorIdx--;
+    if (factorIdx > 0) {
+        factorIdx--;
+    }
+}
+
+void Paper::setFactorial(bool state) {
+    factorial = state;
+    recalcDevRemainingFromElapsed();
+}
+
+bool Paper::getFactorial() {
+    return factorial;
+}
+
+void Paper::setFactor(uint8_t f) {
+    if (f < 2) f = 2;
+    if (f > 10) f = 10;
+    factorIdx = f - 2;
+    recalcDevRemainingFromElapsed();
+}
+
+uint8_t Paper::getFactor() {
+    return factor[factorIdx];
 }
 
 void Paper::run() {
@@ -82,9 +132,22 @@ void Paper::run() {
         uint16_t ticks = elapsed / 100;
         previousMillis += static_cast<unsigned long>(ticks) * 100;
 
+        if (factorialSamplingActive) {
+            uint32_t next = static_cast<uint32_t>(timeCounter) + ticks;
+            if (next > 65535UL) next = 65535UL;
+            timeCounter = static_cast<uint16_t>(next);
+            return;
+        }
+
         if (ticks >= timeCounter) {
+            if (devTimeCounterActive) {
+                devElapsedTicks += timeCounter;
+            }
             timeCounter = 0;
         } else {
+            if (devTimeCounterActive) {
+                devElapsedTicks += ticks;
+            }
             timeCounter -= ticks;
         }
     }
@@ -106,6 +169,7 @@ void Paper::run() {
             devTimeCounterActive = false;
             timeCounter = stopTimeCounter;
             stopTimeCounterActive = true;
+            devElapsedTicks = 0;
             lastAnnouncedTimeCounter = 0xFFFF;
             lastSecondAnnouncedTimeCounter = 0xFFFF;
         } else if (stopTimeCounterActive) {
@@ -118,7 +182,8 @@ void Paper::run() {
             fixerTimeCounterActive = false;
             state = Dev::OFF;
             cycleFinished = true;
-            timeCounter = devTimeCounter;
+            timeCounter = getCurrentDevTargetTicks();
+            devElapsedTicks = 0;
             lastAnnouncedTimeCounter = 0xFFFF;
             lastSecondAnnouncedTimeCounter = 0xFFFF;
         }
@@ -149,20 +214,67 @@ void Paper::startDevelopment() {
     previousMillis = millis();
     state = Dev::ON;
     cycleFinished = false;
-    timeCounter = devTimeCounter;
+    timeCounter = getCurrentDevTargetTicks();
     devTimeCounterActive = true;
+    stopTimeCounterActive = false;
+    fixerTimeCounterActive = false;
+    factorialSamplingActive = false;
+    devElapsedTicks = 0;
     lastAnnouncedTimeCounter = 0xFFFF;
     lastSecondAnnouncedTimeCounter = 0xFFFF;
+}
+
+void Paper::handleStartPress() {
+    if (!enabled) {
+        return;
+    }
+
+    if (!factorial) {
+        if (state == Dev::OFF) {
+            startDevelopment();
+        }
+        return;
+    }
+
+    if (state == Dev::OFF) {
+        previousMillis = millis();
+        state = Dev::ON;
+        cycleFinished = false;
+        timeCounter = 0;
+        devTimeCounterActive = false;
+        stopTimeCounterActive = false;
+        fixerTimeCounterActive = false;
+        factorialSamplingActive = true;
+        devElapsedTicks = 0;
+        lastAnnouncedTimeCounter = 0xFFFF;
+        lastSecondAnnouncedTimeCounter = 0xFFFF;
+        return;
+    }
+
+    if (factorialSamplingActive) {
+        uint32_t target = static_cast<uint32_t>(timeCounter) * factor[factorIdx];
+        if (target > 65535UL) target = 65535UL;
+        timeCounter = static_cast<uint16_t>(target);
+        devElapsedTicks = 0;
+        devTimeCounterActive = true;
+        stopTimeCounterActive = false;
+        fixerTimeCounterActive = false;
+        factorialSamplingActive = false;
+        lastAnnouncedTimeCounter = 0xFFFF;
+        lastSecondAnnouncedTimeCounter = 0xFFFF;
+    }
 }
 
 void Paper::reset() {
     previousMillis = millis();
     state = Dev::OFF;
     cycleFinished = false;
-    timeCounter = devTimeCounter;
+    timeCounter = factorial ? 0 : getCurrentDevTargetTicks();
     devTimeCounterActive = false;
     stopTimeCounterActive = false;
     fixerTimeCounterActive = false;
+    factorialSamplingActive = false;
+    devElapsedTicks = 0;
     lastAnnouncedTimeCounter = 0xFFFF;
     lastSecondAnnouncedTimeCounter = 0xFFFF;
 }
@@ -182,6 +294,7 @@ bool Paper::consumeCycleFinished() {
 }
 
 DevType Paper::getDevType() {
+    if (factorialSamplingActive) return DevType::FACTORIAL_MEASURE;
     if (devTimeCounterActive) return DevType::DEVELOPER;
     if (stopTimeCounterActive) return DevType::STOP_BATH;
     if (fixerTimeCounterActive) return DevType::FIXER;

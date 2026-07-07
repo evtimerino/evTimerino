@@ -400,6 +400,9 @@ void Display::drawPaper(uint16_t timeCounter, DevType devType) {
         case DevType::STOP_BATH:
             oled.drawStr(0, 64, "STOP BATH");
             break;
+        case DevType::FACTORIAL_MEASURE:
+            oled.drawStr(0, 64, "MEASURE");
+            break;
         default:;
             break;
     }

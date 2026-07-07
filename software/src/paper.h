@@ -26,13 +26,18 @@ class Paper {
         uint16_t lastSecondAnnouncedTimeCounter = 0xFFFF;
         bool cycleFinished = false;
         bool factorial = false;
+        bool factorialSamplingActive = false;
         uint8_t factor[9] = {2, 3, 4, 5, 6, 7, 8, 9, 10};
         uint8_t factorIdx = 0;
+        uint32_t devElapsedTicks = 0;
+        uint16_t getCurrentDevTargetTicks();
+        void recalcDevRemainingFromElapsed();
     public:
         Paper(Buzzer& b, Display& d);
         ~Paper();
         void run();
         void startDevelopment();
+        void handleStartPress();
         void setEnabled(bool state);
         void setDevTimeCounterUp();
         void setDevTimeCounterDown();
@@ -45,6 +50,10 @@ class Paper {
         void setFixerTimeCounter(uint16_t t);
         void setFactorIdxUp();
         void setFactorIdxDown();
+        void setFactorial(bool state);
+        bool getFactorial();
+        void setFactor(uint8_t f);
+        uint8_t getFactor();
         uint16_t getTimeCounter();
         uint16_t getDevTimeCounter();
         uint16_t getStopTimeCounter();

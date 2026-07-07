@@ -25,6 +25,10 @@ namespace TimerMenu {
     uint8_t brightnessCurrentSelection = 0;
     uint8_t paperEnabledPreviousSelection = 1;
     uint8_t paperEnabledCurrentSelection = 1;
+    uint8_t paperFactorialPreviousSelection = 0;
+    uint8_t paperFactorialCurrentSelection = 0;
+    uint8_t paperFactorPreviousSelection = 2;
+    uint8_t paperFactorCurrentSelection = 2;
     uint8_t paperDevMinutesPreviousSelection = 0;
     uint8_t paperDevMinutesCurrentSelection = 0;
     uint8_t paperDevSecondsPreviousSelection = 30;
@@ -86,6 +90,8 @@ namespace TimerMenu {
         MUIF_VARIABLE("RC", &lampUsageCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RV", &brightnessCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RW", &paperEnabledCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RZ", &paperFactorialCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q7", &paperFactorCurrentSelection, 2, 10, mui_u8g2_u8_min_max_wm_mse_pi),
         MUIF_U8G2_U8_MIN_MAX("Q1", &paperDevMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
         MUIF_U8G2_U8_MIN_MAX("Q2", &paperDevSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
         MUIF_U8G2_U8_MIN_MAX("Q3", &paperStopMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
@@ -227,6 +233,8 @@ namespace TimerMenu {
         MUI_STYLE(0)
         MUI_DATA("GP", 
             MUI_20 "Enabled|"
+            MUI_25 "Factorial|"
+            MUI_26 "Factor|"
             MUI_21 "Dev Time|"
             MUI_22 "Stop Time|"
             MUI_23 "Fixer Time|"
@@ -235,6 +243,25 @@ namespace TimerMenu {
         MUI_XYA("GC", 5, 37, 1)
         MUI_XYA("GC", 5, 49, 2)
         MUI_XYA("GC", 5, 61, 3)
+
+        MUI_FORM(25)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Factorial")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYAT("RZ", 5, 22, 0, "Off")
+        MUI_XYAT("RZ", 5, 32, 1, "On")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(26)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Factor")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Value")
+        MUI_XY("Q7", 70, 24)
+        MUI_LABEL(5, 52, "Range: 2-10")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
 
         MUI_FORM(20)
         MUI_STYLE(1)
@@ -404,6 +431,10 @@ namespace TimerMenu {
 
         paperEnabledCurrentSelection = paper.getEnabled() ? 1 : 0;
         paperEnabledPreviousSelection = paperEnabledCurrentSelection;
+        paperFactorialCurrentSelection = paper.getFactorial() ? 1 : 0;
+        paperFactorialPreviousSelection = paperFactorialCurrentSelection;
+        paperFactorCurrentSelection = paper.getFactor();
+        paperFactorPreviousSelection = paperFactorCurrentSelection;
         paperCounterToParts(paper.getDevTimeCounter(), paperDevMinutesCurrentSelection, paperDevSecondsCurrentSelection);
         paperDevMinutesPreviousSelection = paperDevMinutesCurrentSelection;
         paperDevSecondsPreviousSelection = paperDevSecondsCurrentSelection;
@@ -605,6 +636,20 @@ namespace TimerMenu {
             paper.setEnabled(paperEnabledCurrentSelection != 0);
             storage.storePaperEnabled(paperEnabledCurrentSelection);
             paperEnabledPreviousSelection = paperEnabledCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperFactorialCurrentSelection != paperFactorialPreviousSelection) {
+            paper.setFactorial(paperFactorialCurrentSelection != 0);
+            storage.storePaperFactorial(paperFactorialCurrentSelection);
+            paperFactorialPreviousSelection = paperFactorialCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperFactorCurrentSelection != paperFactorPreviousSelection) {
+            paper.setFactor(paperFactorCurrentSelection);
+            storage.storePaperFactor(paperFactorCurrentSelection);
+            paperFactorPreviousSelection = paperFactorCurrentSelection;
             isUpdate = true;
         }
 
