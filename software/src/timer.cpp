@@ -49,6 +49,7 @@ const Timer::transition_t Timer::transitions[] = {
     {State::MENU, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::RELEASED_TESTSTRIP, State::TESTSTRIP},
     {State::TESTSTRIP, Event::MOVE_TO_MAIN, State::MAIN},
+    {State::TESTSTRIP, Event::MOVE_TO_PAPER, State::PAPER},
     {State::MAIN, Event::MOVE_TO_PREPARE, State::PREPARE},
     {State::PREPARE, Event::MOVE_TO_MAIN, State::MAIN},
     {State::MAIN, Event::LONGPRESS_TESTSTRIP, State::METRONOME},
@@ -145,6 +146,7 @@ void Timer::state_main_run() {
             if (exposure.getSize() == 0) {
                 insertEvent(Event::MOVE_TO_ADJUSTMENT_PHASE);
             } else {
+                paperOpenedFromTeststrip = false;
                 paper.reset();
                 insertEvent(Event::MOVE_TO_PAPER);
             }
@@ -308,6 +310,7 @@ void Timer::state_adjustment_phase_run() {
     }
 
     if (nextEvent == Event::PRESSED_START || nextEvent == Event::RELEASED_START) {
+        paperOpenedFromTeststrip = false;
         paper.reset();
         insertEvent(Event::MOVE_TO_PAPER);
         return;
@@ -353,6 +356,13 @@ void Timer::state_teststrip_run(){
         break;
     case Event::RELEASED_DOWN:
         exposure.setTestStripPrecisionDown();
+        break;
+    case Event::RELEASED_ADJUSTMENT:
+        if (paper.getEnabled()) {
+            paperOpenedFromTeststrip = true;
+            paper.reset();
+            insertEvent(Event::MOVE_TO_PAPER);
+        }
         break;
     case Event::RELEASED_EXIT:
         exposure.resetTestStrip();
@@ -527,6 +537,12 @@ void Timer::state_paper_run() {
     case Event::RELEASED_EXIT:
         paper.reset();
         enlarger.setIsExposureFinished(false);
+        if (paperOpenedFromTeststrip) {
+            exposure.resetTestStrip();
+            exposure.resetBaseTime();
+            exposure.setMode(Mode::EXPOSURE);
+            paperOpenedFromTeststrip = false;
+        }
         insertEvent(Event::MOVE_TO_MAIN);
         break;
     case Event::PRESSED_START:
@@ -541,6 +557,12 @@ void Timer::state_paper_run() {
         paper.run();
         if (paper.consumeCycleFinished()) {
             enlarger.setIsExposureFinished(false);
+            if (paperOpenedFromTeststrip) {
+                exposure.resetTestStrip();
+                exposure.resetBaseTime();
+                exposure.setMode(Mode::EXPOSURE);
+                paperOpenedFromTeststrip = false;
+            }
             insertEvent(Event::MOVE_TO_MAIN);
         }
     }

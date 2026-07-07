@@ -33,6 +33,7 @@ private:
     Paper& paper;
 
     bool prepareState = false;
+    bool paperOpenedFromTeststrip = false;
             
     // State Machine
     struct transition_t
