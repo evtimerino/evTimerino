@@ -39,6 +39,7 @@ private:
     uint8_t menuSelection = 2;
 
     void drawDigit(uint8_t x, uint8_t y, uint8_t digit);
+    void drawMediumDigit(uint8_t x, uint8_t y, uint8_t digit);
     void drawSmallDigit(uint8_t x, uint8_t y, uint8_t digit);
     void drawSign(uint8_t x, uint8_t y, bool positive);
     void drawAdj(uint8_t x, uint8_t y, uint8_t value);
@@ -50,15 +51,17 @@ public:
     ~Display();
     void drawLogo();
     void drawMain(uint16_t timeCounter, uint8_t precision, uint8_t dodgeCount, uint8_t burnCount, bool prepare);
-    void drawAdjustment(Adjustment type, uint16_t timeCounter, uint8_t value, uint8_t area);
-    void drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number);
-    void drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStripIdx);
+    void drawAdjustment(Adjustment type, uint16_t timeCounter, uint8_t value, uint8_t area, uint8_t precision);
+    void drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number, uint8_t precision);
+    void drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStripIdx, uint8_t precision);
     void drawTestStripSplitGrade(uint16_t timeCounter, uint8_t testStripIdx);
     void drawPrecision(uint8_t precision);
     void drawExposure(uint16_t timeCounter);
     void drawMetronome(uint16_t timeCounter);
     void drawLampUsage(uint16_t hours, uint8_t minutes);
     void drawLinear(uint16_t timeCounter, LinearPrecision precision);
+    void drawPaper(uint16_t timeCounter, DevType devType);
+    void drawAdjustmentPhase();
     void drawPrepare();
     void drawFocus();
     void drawPause();

@@ -7,7 +7,7 @@ PushButton::PushButton(uint8_t p) : pin(p) {
 PushButton::~PushButton() {}
 
 void PushButton::scan() {
-    if (state == Button::PRESSED && digitalRead(pin) == HIGH) state = Button::RELEASED; 
+    if ((state == Button::PRESSED || state == Button::LONG_PRESS) && digitalRead(pin) == HIGH) state = Button::RELEASED;
     if (millis() - lastMainButtonStateChange > debounceDuration) {
         byte buttonState = digitalRead(pin);
         if (buttonState != lastButtonState) {
@@ -15,6 +15,8 @@ void PushButton::scan() {
             lastButtonState = buttonState;
             if (buttonState == LOW) {
                 state = Button::PRESSED;
+                pressEdge = true;
+                longPressHandled = false;
             }
         }
     }
@@ -35,19 +37,32 @@ Button PushButton::released() {
     switch (state)
     {
     case Button::LONG_PRESS:
-        state = Button::IDLE;
-        event = Button::LONG_PRESS;
+        if (!longPressHandled) {
+            longPressHandled = true;
+            event = Button::LONG_PRESS;
+        } else {
+            event = Button::IDLE;
+        }
         break;
     case Button::RELEASED:
         state = Button::IDLE;
         event = Button::RELEASED;
         pressed = false;
+        longPressHandled = false;
         break;
     default:
         event = Button::IDLE;
         break;
     }
     return event;
+}
+
+bool PushButton::consumePressEdge() {
+    if (!pressEdge) {
+        return false;
+    }
+    pressEdge = false;
+    return true;
 }
 
 Keypad::Keypad() {}
@@ -64,6 +79,12 @@ void Keypad::tick(){
 Event Keypad::fetchKeypadEvent() {
     Event newEvent = Event::NO_EVENT;
     for (uint8_t i = 0; i < buttonsNumber; i++) {
+        if (!startOnRelease) {
+            if ((i == START || i == FOOTSWITCH) && buttons[i].consumePressEdge()) {
+                newEvent = Event::PRESSED_START;
+            }
+        }
+
         Button state = buttons[i].released();
         if (state == Button::LONG_PRESS) {
             switch (i)
@@ -100,13 +121,13 @@ Event Keypad::fetchKeypadEvent() {
                 newEvent = Event::RELEASED_FOCUS;
                 break;
             case START:
-                newEvent = Event::RELEASED_START;
+                if (startOnRelease) newEvent = Event::RELEASED_START;
                 break;
             case FOOTSWITCH:
-                newEvent = Event::RELEASED_START;
+                if (startOnRelease) newEvent = Event::RELEASED_START;
                 break;
             case FOOTSWITCH2:
-                newEvent = Event::RELEASED_FOCUS;
+                newEvent = Event::RELEASED_FOOTSWITCH2;
                 break;
             case UP:
                 newEvent = Event::RELEASED_UP;
@@ -132,4 +153,12 @@ Event Keypad::fetchKeypadEvent() {
         }
     }
     return newEvent;
+}
+
+void Keypad::setStartOnRelease(bool enabled) {
+    startOnRelease = enabled;
+}
+
+bool Keypad::getStartOnRelease() {
+    return startOnRelease;
 }

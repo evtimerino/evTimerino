@@ -20,11 +20,13 @@
 #define TESTSTRIP_PIN D7
 
 
-#define EVENTS 53
+#define EVENTS 60
 
 enum class Event {
     NO_EVENT,
     RELEASED_FOCUS,
+    RELEASED_FOOTSWITCH2,
+    PRESSED_START,
     RELEASED_START,
     RELEASED_UP,
     RELEASED_DOWN,
@@ -40,12 +42,14 @@ enum class Event {
     LONGPRESS_UP,
     LONGPRESS_DOWN,
     MOVE_TO_MAIN,
+    MOVE_TO_ADJUSTMENT_PHASE,
     MOVE_TO_PREPARE,
     MOVE_TO_MENU,
     MOVE_TO_PAUSE,
     MOVE_TO_TESTSTRIP,
     MOVE_TO_LAMPUSAGE,
     MOVE_TO_LINEAR,
+    MOVE_TO_PAPER,
 };
 
 enum class State {
@@ -53,14 +57,16 @@ enum class State {
     TESTSTRIP = 1,
     MENU = 2,
     ADJUSTMENT = 3,
-    FOCUS = 4,
-    PREPARE = 5,
-    METRONOME = 6,
-    PAUSE = 7,
-    LAMPUSAGE = 8,
-    PRECISION = 9,
-    LINEAR = 10,
-    COUNT = 11,
+  ADJUSTMENT_PHASE = 4,
+  FOCUS = 5,
+  PREPARE = 6,
+  METRONOME = 7,
+  PAUSE = 8,
+  LAMPUSAGE = 9,
+  PRECISION = 10,
+  LINEAR = 11,
+  PAPER = 12,
+  COUNT = 13,
 };
 
 enum class Relay {
@@ -120,6 +126,18 @@ enum class LampUsage {
 enum class LinearPrecision {
     SECONDS,
     TENTHS,
+};
+
+enum class Dev {
+    ON,
+    OFF,
+};
+
+enum class DevType {
+    DEVELOPER,
+    STOP_BATH,
+    FIXER,
+  FACTORIAL_MEASURE,
 };
 
 #endif

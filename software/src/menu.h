@@ -6,6 +6,7 @@
 #include <enlarger.h>
 #include <display.h>
 #include <storage.h>
+#include <paper.h>
 
 #ifndef MENU_H
 #define MENU_H
@@ -24,6 +25,7 @@ namespace TimerMenu {
         Buzzer& buzzer;
         Display& display;
         Storage& storage;
+        Paper& paper;
 
         bool isReDraw = true;
         Event event = Event::NO_EVENT;
@@ -32,7 +34,7 @@ namespace TimerMenu {
         void update();
 
     public:
-        Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s);
+        Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s, Paper& p);
         ~Menu();
 
         void setup();

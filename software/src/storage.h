@@ -2,9 +2,11 @@
 #include <U8g2lib.h>
 #include <common.h>
 #include <Preferences.h>
+#include <keypad.h>
 #include <exposure.h>
 #include <enlarger.h>
 #include <display.h>
+#include <paper.h>
 
 #ifndef USER_PREFERENCES_H
 #define USER_PREFERENCES_H
@@ -17,6 +19,8 @@ private:
     Exposure& exposure;
     Buzzer& buzzer;
     Enlarger& enlarger;
+    Keypad& keypad;
+    Paper& paper;
 
     uint32_t lampUsageHoursCounter = 0;
     uint8_t lampUsageMinutesCounter = 1;
@@ -24,7 +28,7 @@ private:
     uint32_t lampUsageTenthsCounter = 0;
 
 public:
-    Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l);
+    Storage(Display& o, Preferences& p, Exposure& e, Buzzer& b, Enlarger& l, Keypad& k, Paper& pa);
     ~Storage();
     void load();
     uint16_t getLampUsageHours();
@@ -36,9 +40,16 @@ public:
     void storeTestStripMode(uint8_t t);
     void storeSafelight(uint8_t s);
     void storeStartTime(uint8_t s);
+    void storeStartTrigger(uint8_t t);
     void storeBuzzer(uint8_t b);
     void storePrepare(uint8_t p);
     void storeBrightness(uint8_t b);
+    void storePaperEnabled(uint8_t e);
+    void storePaperFactorial(uint8_t f);
+    void storePaperFactor(uint8_t f);
+    void storePaperDevTime(uint16_t t);
+    void storePaperStopTime(uint16_t t);
+    void storePaperFixerTime(uint16_t t);
     
     void resetLampUsage();
 };

@@ -19,6 +19,7 @@ Enlarger::~Enlarger() {
 void Enlarger::startExposure() {
     timeCounter = exposure.getTimeCounter();
     setLampUsageBaseTime(timeCounter);
+    previousMillis = millis();
     state = Lamp::ON;
     
     updateRelay();
@@ -27,13 +28,26 @@ void Enlarger::startExposure() {
 
 void Enlarger::run() {
     currentMillis = millis();
-    
-    if ((currentMillis - previousMillis) >= 100 ) {
+
+    if (previousMillis == 0) {
         previousMillis = currentMillis;
-        timeCounter--;    
+        return;
+    }
+
+    unsigned long elapsed = currentMillis - previousMillis;
+    if (elapsed >= 100) {
+        uint16_t ticks = elapsed / 100;
+        previousMillis += static_cast<unsigned long>(ticks) * 100;
+
+        if (ticks >= timeCounter) {
+            timeCounter = 0;
+        } else {
+            timeCounter -= ticks;
+        }
         display.drawExposure(timeCounter);
-        if (exposure.getMode() == Mode::LINEAR && timeCounter % 10 == 0) buzzer.exposure();
-        if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime() && timeCounter % 10 == 0) buzzer.exposure();
+        if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime() && timeCounter % 10 == 0) {
+            buzzer.exposure();
+        }
     }
 
     if (timeCounter == 0) {
@@ -42,11 +56,17 @@ void Enlarger::run() {
         updateSafeLight();
         buzzer.endExposure();
         if (exposure.getMode() != Mode::LINEAR) exposure.next();
+        if (exposure.getMode() == Mode::EXPOSURE && exposure.getBaseTime()) {
+            isExposureFinished = true;
+        } else if (exposure.getMode() == Mode::LINEAR) {
+            isExposureFinished = true;
+        }
         return;
     }
 }
 
 void Enlarger::switchOn() {
+    previousMillis = millis();
     state = Lamp::ON;
     updateRelay();
     updateSafeLight(); 
@@ -78,10 +98,26 @@ uint16_t Enlarger::getMetronomeTimeCounter() {
 
 void Enlarger::runMetronome() {
     currentMillis = millis();
-    if ((currentMillis - previousMillis) >= 100 ) {
+
+    if (previousMillis == 0) {
         previousMillis = currentMillis;
-        if (metronomeTimeCounter == 9999) metronomeTimeCounter = 0;
-        metronomeTimeCounter++;    
+        return;
+    }
+
+    unsigned long elapsed = currentMillis - previousMillis;
+    if (elapsed >= 100) {
+        uint16_t ticks = elapsed / 100;
+        previousMillis += static_cast<unsigned long>(ticks) * 100;
+
+        if (ticks > 0) {
+            // Keep the historical sequence: 1..9999 and wrap back to 1.
+            uint16_t base = metronomeTimeCounter;
+            if (base == 0 || base > 9999) {
+                base = 1;
+            }
+            uint16_t offset = static_cast<uint16_t>((base - 1 + ticks) % 9999);
+            metronomeTimeCounter = offset + 1;
+        }
         display.drawMetronome(metronomeTimeCounter);
         if (metronomeTimeCounter % 10 == 0) {
             buzzer.metronome();
@@ -94,6 +130,7 @@ void Enlarger::stopMetronome() {
     buzzer.endExposure();
     delay(1000);
     metronomeTimeCounter = 0;
+    previousMillis = millis();
 }
 
 void Enlarger::setSafelight(Safelight sl) {
@@ -155,9 +192,17 @@ bool Enlarger::getLampUsage() {
 
 void Enlarger::runFocusLampUsageCounter() {
     currentMillis = millis();
-    if ((currentMillis - previousMillis) >= 100 ) {
+
+    if (previousMillis == 0) {
         previousMillis = currentMillis;
-        focusLampUsageCounter++;    
+        return;
+    }
+
+    unsigned long elapsed = currentMillis - previousMillis;
+    if (elapsed >= 100) {
+        uint16_t ticks = elapsed / 100;
+        previousMillis += static_cast<unsigned long>(ticks) * 100;
+        focusLampUsageCounter += ticks;
     }
 }
 
@@ -183,4 +228,12 @@ uint16_t Enlarger::getLampUsageCounter(bool pause) {
         return counter;
     }
     return 0;
+}
+
+bool Enlarger::getIsExposureFinished() {
+    return isExposureFinished;
+}
+
+void Enlarger::setIsExposureFinished(bool v) {
+    isExposureFinished = v;
 }

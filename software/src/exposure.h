@@ -10,6 +10,9 @@
 struct node {
     Adjustment type;
     uint8_t area;
+    uint8_t precision;
+    uint8_t precisionIdx;
+    uint16_t steps;
     uint8_t value;
     uint16_t timeCounter;
     node *next;
@@ -28,14 +31,21 @@ private:
     uint16_t baseTimeCounter = 160;
     uint16_t baseTimeCounterAdjusted = 160;
     
-    const uint8_t precisions[10] = {2, 3, 4, 6, 8, 12, 16, 24, 32, 48};
+    const uint8_t precisions[6] = {2, 3, 6, 12, 24, 48};
     int16_t steps = 24;
     uint8_t precision = 6;
-    uint8_t newPrecisionIdx = 3;
-    uint8_t precisionIdx = 3;
+    uint8_t newPrecisionIdx = 2;
+    uint8_t precisionIdx = 2;
     uint8_t precisionMultiplier = 4;
     bool splitState = true;
 
+    uint8_t stepsIncrement = 1;
+
+    int16_t tsSteps = 24;
+    uint8_t tsPrecision = 6;
+    uint8_t tsPrecisionIdx = 2;
+
+    uint8_t adjPrecision = 3;
     
     uint8_t size;
     uint16_t dodgeTimeCounters;
@@ -55,6 +65,8 @@ private:
     uint16_t linearBaseTimeCounter = 100;
     LinearPrecision linearPrecision = LinearPrecision::SECONDS;
 
+    uint8_t genUnit(uint8_t adjPrecision);
+
     public:
     Exposure(Buzzer& b);
     ~Exposure();
@@ -62,7 +74,6 @@ private:
     void setMode(Mode m);
     void clear();
     void remove();
-    void reset();
     void resetNewAdj();
     void restart();
     uint16_t getTimeCounter();
@@ -70,6 +81,7 @@ private:
     uint8_t getValue();
     uint8_t getArea();
     void next();
+    bool lastAdj();
     void resetIndex();
     void setBaseExposureUp();
     void setBaseExposureDown();
@@ -92,7 +104,7 @@ private:
     void setBaseTime();
     void setPrecision(uint8_t i);
     uint16_t getTestStripTimeCounter();
-    void resetTestStrip();
+    void resetTestStripSteps();
     void testStripNext();
     int8_t getTestStripSteps();
     void setTestStripMode(Teststrip m);
@@ -111,13 +123,20 @@ private:
     void setPrecisionDown();
     void updatePrecision();
     uint8_t getNewPrecision();
-    void splitSteps();
+    bool splitSteps();
     void setLinearUp();
     void setLinearDown();
     void switchLinearPrecision();
     void resetLinearTimeCounter();
     uint16_t getLinearTimeCounter();
     LinearPrecision getLinearPrecision();
+    void setTestStripPrecisionUp();
+    void setTestStripPrecisionDown();
+    uint8_t getTestStripPrecision();
+    void resetTestStrip();
+    uint8_t getAdjPrecision();
+    uint8_t getNewAdjPrecision();
+    void switchAdjPrecision();
 };
 
 #endif

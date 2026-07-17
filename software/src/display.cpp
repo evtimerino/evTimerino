@@ -157,8 +157,11 @@ Display::~Display()
 {
 }
 
-void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area, uint8_t value) {
+void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area, uint8_t value, uint8_t precision) {
     oled.clearBuffer();
+    char buffer[10];
+    sprintf(buffer, "P: 1/%d", precision);
+    oled.drawStr(0, 52, buffer);
     char s[13];
     switch (adj)
     {
@@ -178,11 +181,11 @@ void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area,
     uint8_t tenSeconds = (timeCounter / 100) % 10;
     uint8_t hundredSeconds = (timeCounter / 1000) % 10;
 
-    drawDigit(102, 0, tenth);
-    if (timeCounter <= 9) drawDigit(66, 0, 0);
-    if (timeCounter > 9) drawDigit(66, 0, seconds);
-    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
-    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    drawMediumDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawMediumDigit(66, 0, 0);
+    if (timeCounter > 9) drawMediumDigit(66, 0, seconds);
+    if (timeCounter > 99) drawMediumDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawMediumDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
     
     int8_t adj_value = value;
@@ -195,8 +198,11 @@ void Display::drawAdjustment(Adjustment adj, uint16_t timeCounter, uint8_t area,
 }
 
 
-void Display::drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number) {
+void Display::drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment type, uint8_t number, uint8_t precision) {
     oled.clearBuffer();
+    char buffer[10];
+    sprintf(buffer, "P: 1/%d", precision);
+    oled.drawStr(0, 52, buffer);
     char s[13];
     number++;
     switch (type)
@@ -222,11 +228,11 @@ void Display::drawNewAdjustment(uint16_t timeCounter, int8_t value, Adjustment t
     uint8_t tenSeconds = (timeCounter / 100) % 10;
     uint8_t hundredSeconds = (timeCounter / 1000) % 10;
 
-    drawDigit(102, 0, tenth);
-    if (timeCounter <= 9) drawDigit(66, 0, 0);
-    if (timeCounter > 9) drawDigit(66, 0, seconds);
-    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
-    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    drawMediumDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawMediumDigit(66, 0, 0);
+    if (timeCounter > 9) drawMediumDigit(66, 0, seconds);
+    if (timeCounter > 99) drawMediumDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawMediumDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
 
     int8_t adj_value = value;
@@ -273,8 +279,11 @@ void Display::drawMain(uint16_t timeCounter, uint8_t precision, uint8_t dodgeCou
     
 }
 
-void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStripIdx) {
+void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStripIdx, uint8_t precision) {
     oled.clearBuffer();
+    char buffer[10];
+    sprintf(buffer, "P: 1/%d", precision);
+    oled.drawStr(0, 52, buffer);
     switch (mode)
     {
     case Teststrip::SEPARATE_A:
@@ -311,13 +320,22 @@ void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStr
         double_digit = (testStripIdx / 10) % 10;
     }
 
-    drawDigit(102, 0, tenth);
-    if (timeCounter <= 9) drawDigit(66, 0, 0);
-    if (timeCounter > 9) drawDigit(66, 0, seconds);
-    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
-    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+    drawMediumDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawMediumDigit(66, 0, 0);
+    if (timeCounter > 9) drawMediumDigit(66, 0, seconds);
+    if (timeCounter > 99) drawMediumDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawMediumDigit(2, 0, hundredSeconds);
     oled.drawBox(95, 0 + 39, 4, 4);
-    
+
+    /*
+    drawMediumDigit(114, 0, tenth);
+    if (timeCounter <= 9) drawMediumDigit(93, 0, 0);
+    if (timeCounter > 9) drawMediumDigit(93, 0, seconds);
+    if (timeCounter > 99) drawMediumDigit(76, 0, tenSeconds);
+    if (timeCounter > 999) drawMediumDigit(59, 0, hundredSeconds);
+    oled.drawBox(108, 0 + 22, 3, 3);
+    */
+
     if (mode == Teststrip::INCREMENTAL_B && testStripIdx == 0) {
         oled.setFont(u8g2_font_VCR_OSD_mu);
         oled.drawStr(117, 64, "B");
@@ -326,7 +344,6 @@ void Display::drawTestStrip(Teststrip mode, uint16_t timeCounter, int8_t testStr
         drawSmallDigit(119, 47, digit);
         if (testStripIdx > 9) drawSmallDigit(105, 47, double_digit);
     }
-    
     oled.sendBuffer();
 }
 
@@ -368,6 +385,45 @@ void Display::drawExposure(uint16_t timeCounter) {
     if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
     if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
         oled.drawBox(95, 0 + 39, 4, 4);
+    oled.sendBuffer();
+}
+
+void Display::drawPaper(uint16_t timeCounter, DevType devType) {
+    oled.clearBuffer();
+    switch (devType) {
+        case DevType::DEVELOPER:
+            oled.drawStr(0, 64, "DEVELOPER");
+            break;
+        case DevType::FIXER:
+            oled.drawStr(0, 64, "FIXER");
+            break;
+        case DevType::STOP_BATH:
+            oled.drawStr(0, 64, "STOP BATH");
+            break;
+        case DevType::FACTORIAL_MEASURE:
+            oled.drawStr(0, 64, "MEASURE");
+            break;
+        default:;
+            break;
+    }
+    uint8_t tenth = timeCounter % 10;
+    uint8_t seconds = (timeCounter / 10) % 10;
+    uint8_t tenSeconds = (timeCounter / 100) % 10;
+    uint8_t hundredSeconds = (timeCounter / 1000) % 10;
+    drawDigit(102, 0, tenth);
+    if (timeCounter <= 9) drawDigit(66, 0, 0);
+    if (timeCounter > 9) drawDigit(66, 0, seconds);
+    if (timeCounter > 99) drawDigit(34, 0, tenSeconds);
+    if (timeCounter > 999) drawDigit(2, 0, hundredSeconds);
+        oled.drawBox(95, 0 + 39, 4, 4);
+    oled.sendBuffer();
+}
+
+void Display::drawAdjustmentPhase() {
+    oled.clearBuffer();
+    oled.drawStr(0, 30, "ADJUSTMENTS");
+    oled.drawStr(0, 42, "PHASE");
+    oled.drawStr(0, 64, "START > PAPER");
     oled.sendBuffer();
 }
 
@@ -594,6 +650,59 @@ void Display::drawDigit(uint8_t x, uint8_t y, uint8_t digit) {
         oled.drawLine(x + 3, y + 21, x + 22, y + 21);
         oled.drawLine(x + 4, y + 22, x + 21, y + 22);
         oled.drawLine(x + 5, y + 23, x + 20, y + 23);
+    }
+}
+
+void Display::drawMediumDigit(uint8_t x, uint8_t y, uint8_t digit) {
+    int segments = segDigit[digit];
+    if ((segments & SegA) != 0) {
+        oled.drawLine(x + 1, y + 0, x + 24, y + 0);
+        oled.drawLine(x + 2, y + 1, x + 23, y + 1);
+        oled.drawLine(x + 3, y + 2, x + 22, y + 2);
+        oled.drawLine(x + 4, y + 3, x + 21, y + 3);
+        oled.drawLine(x + 5, y + 4, x + 20, y + 4);
+    }
+    if ((segments & SegB) != 0) {
+        oled.drawLine(x + 21, y + 5, x + 21, y + 16);
+        oled.drawLine(x + 22, y + 4, x + 22, y + 17);
+        oled.drawLine(x + 23, y + 3, x + 23, y + 18);
+        oled.drawLine(x + 24, y + 2, x + 24, y + 17);
+        oled.drawLine(x + 25, y + 1, x + 25, y + 16);
+    }
+    if ((segments & SegC) != 0) {
+        oled.drawLine(x + 21, y + 22, x + 21, y + 35);
+        oled.drawLine(x + 22, y + 21, x + 22, y + 36);
+        oled.drawLine(x + 23, y + 20, x + 23, y + 37);
+        oled.drawLine(x + 24, y + 21, x + 24, y + 38);
+        oled.drawLine(x + 25, y + 22, x + 25, y + 39);
+    }
+    if ((segments & SegD) != 0) {
+        oled.drawLine(x + 5, y + 36, x + 20, y + 36);
+        oled.drawLine(x + 4, y + 37, x + 21, y + 37);
+        oled.drawLine(x + 3, y + 38, x + 22, y + 38);
+        oled.drawLine(x + 2, y + 39, x + 23, y + 39);
+        oled.drawLine(x + 1, y + 40, x + 24, y + 40);
+    }
+    if ((segments & SegE) != 0) {
+        oled.drawLine(x + 0, y + 22, x + 0, y + 38);
+        oled.drawLine(x + 1, y + 21, x + 1, y + 37);
+        oled.drawLine(x + 2, y + 20, x + 2, y + 36);
+        oled.drawLine(x + 3, y + 21, x + 3, y + 35);
+        oled.drawLine(x + 4, y + 22, x + 4, y + 34);
+    }
+    if ((segments & SegF) != 0) {
+        oled.drawLine(x + 0, y + 1, x + 0, y + 16);
+        oled.drawLine(x + 1, y + 2, x + 1, y + 17);
+        oled.drawLine(x + 2, y + 3, x + 2, y + 18);
+        oled.drawLine(x + 3, y + 4, x + 3, y + 17);
+        oled.drawLine(x + 4, y + 5, x + 4, y + 16);
+    }
+    if ((segments & SegG) != 0) {
+        oled.drawLine(x + 5, y + 17, x + 20, y + 17);
+        oled.drawLine(x + 4, y + 18, x + 21, y + 18);
+        oled.drawLine(x + 3, y + 19, x + 22, y + 19);
+        oled.drawLine(x + 4, y + 20, x + 21, y + 20);
+        oled.drawLine(x + 5, y + 21, x + 20, y + 21);
     }
 }
 

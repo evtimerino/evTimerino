@@ -7,6 +7,7 @@
 #include <menu.h>
 #include <enlarger.h>
 #include <storage.h>
+#include <paper.h>
 #include <U8g2lib.h>
 #include <MUIU8g2.h>
 #include <Wire.h>
@@ -21,9 +22,10 @@ Keypad keypad = Keypad();
 Buzzer buzzer = Buzzer();
 Exposure exposure = Exposure(buzzer);
 Enlarger enlarger = Enlarger(oled, buzzer, exposure);
-Storage storage = Storage(oled, preferences, exposure, buzzer, enlarger);
-TimerMenu::Menu menu(keypad, exposure, u8g2, enlarger, buzzer, oled, storage);
-Timer timer = Timer(oled, keypad, buzzer, exposure, enlarger, menu, storage);
+Paper paper = Paper(buzzer, oled);
+Storage storage = Storage(oled, preferences, exposure, buzzer, enlarger, keypad, paper);
+TimerMenu::Menu menu(keypad, exposure, u8g2, enlarger, buzzer, oled, storage, paper);
+Timer timer = Timer(oled, keypad, buzzer, exposure, enlarger, menu, storage, paper);
 
 void setup() {
   Serial.begin(115200);
@@ -39,5 +41,6 @@ void setup() {
 
 void loop() {
   timer.Run();
+  buzzer.update();
 }
 

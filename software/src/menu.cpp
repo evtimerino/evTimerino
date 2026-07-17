@@ -13,6 +13,8 @@ namespace TimerMenu {
     uint8_t safelightCurrentSelection = 0;
     uint8_t startTimePreviousSelection = 0;
     uint8_t startTimeCurrentSelection = 0;
+    uint8_t startTriggerPreviousSelection = 1;
+    uint8_t startTriggerCurrentSelection = 1;
     uint8_t buzzerPreviousSelection = 0;
     uint8_t buzzerCurrentSelection = 0;
     uint8_t preparePreviousSelection = 0;
@@ -21,6 +23,37 @@ namespace TimerMenu {
     uint8_t lampUsageCurrentSelection = 0;
     uint8_t brightnessPreviousSelection = 0;
     uint8_t brightnessCurrentSelection = 0;
+    uint8_t paperEnabledPreviousSelection = 1;
+    uint8_t paperEnabledCurrentSelection = 1;
+    uint8_t paperFactorialPreviousSelection = 0;
+    uint8_t paperFactorialCurrentSelection = 0;
+    uint8_t paperFactorPreviousSelection = 2;
+    uint8_t paperFactorCurrentSelection = 2;
+    uint8_t paperDevMinutesPreviousSelection = 0;
+    uint8_t paperDevMinutesCurrentSelection = 0;
+    uint8_t paperDevSecondsPreviousSelection = 30;
+    uint8_t paperDevSecondsCurrentSelection = 30;
+    uint8_t paperStopMinutesPreviousSelection = 0;
+    uint8_t paperStopMinutesCurrentSelection = 0;
+    uint8_t paperStopSecondsPreviousSelection = 30;
+    uint8_t paperStopSecondsCurrentSelection = 30;
+    uint8_t paperFixerMinutesPreviousSelection = 0;
+    uint8_t paperFixerMinutesCurrentSelection = 0;
+    uint8_t paperFixerSecondsPreviousSelection = 30;
+    uint8_t paperFixerSecondsCurrentSelection = 30;
+
+    static uint16_t paperCounterFromParts(uint8_t minutesSelection, uint8_t secondsSelection) {
+        if (minutesSelection > 3) minutesSelection = 3;
+        if (secondsSelection > 59) secondsSelection = 59;
+        return static_cast<uint16_t>((static_cast<uint16_t>(minutesSelection) * 60) + secondsSelection) * 10;
+    }
+
+    static void paperCounterToParts(uint16_t t, uint8_t& minutesSelection, uint8_t& secondsSelection) {
+        minutesSelection = static_cast<uint8_t>(t / 600);
+        if (minutesSelection > 3) minutesSelection = 3;
+        secondsSelection = static_cast<uint8_t>((t % 600) / 10);
+        if (secondsSelection > 59) secondsSelection = 59;
+    }
 
 
     uint8_t muiHrule(mui_t *ui, uint8_t msg)
@@ -51,10 +84,20 @@ namespace TimerMenu {
         MUIF_VARIABLE("RT", &teststripCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RU", &safelightCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RP", &startTimeCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RX", &startTriggerCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RB", &buzzerCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RE", &prepareCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RC", &lampUsageCurrentSelection, mui_u8g2_u8_radio_wm_pi),
         MUIF_VARIABLE("RV", &brightnessCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RW", &paperEnabledCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_VARIABLE("RZ", &paperFactorialCurrentSelection, mui_u8g2_u8_radio_wm_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q7", &paperFactorCurrentSelection, 2, 10, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q1", &paperDevMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q2", &paperDevSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q3", &paperStopMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q4", &paperStopSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q5", &paperFixerMinutesCurrentSelection, 0, 3, mui_u8g2_u8_min_max_wm_mse_pi),
+        MUIF_U8G2_U8_MIN_MAX("Q6", &paperFixerSecondsCurrentSelection, 0, 59, mui_u8g2_u8_min_max_wm_mse_pi),
     };
 
     fds_t fds_data[] = 
@@ -67,13 +110,15 @@ namespace TimerMenu {
         MUI_DATA("GP", 
             MUI_10 "Precision|"
             MUI_11 "Test Strip|"
+            MUI_19 "Paper Dev|"
             MUI_12 "Brightness|"
             MUI_13 "Safelight|"
             MUI_14 "Start Time|"
+            MUI_24 "Start Trigger|"
             MUI_15 "Buzzer|"
             MUI_16 "Prepare|"
             MUI_17 "Lamp Usage|"
-            MUI_18 "Firmware Version|"
+            MUI_27 "Firmware Version|"
             )
         MUI_XYA("GC", 5, 25, 0) 
         MUI_XYA("GC", 5, 37, 1) 
@@ -87,8 +132,8 @@ namespace TimerMenu {
         MUI_STYLE(0)
         MUI_XYAT("RS",5, 22, 0 , "1/2")
         MUI_XYAT("RS",5, 32, 1, "1/3")
-        MUI_XYAT("RS",5, 42, 2, "1/4")
-        MUI_XYAT("RS",5, 52, 3, "1/6")
+        MUI_XYAT("RS",5, 42, 2, "1/6")
+        MUI_XYAT("RS",5, 52, 3, "1/12")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
     
         MUI_FORM(11)
@@ -136,6 +181,15 @@ namespace TimerMenu {
         MUI_XYAT("RP", 5, 62, 4, "64 sec")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
 
+        MUI_FORM(24)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Start Trigger")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYAT("RX", 5, 22, 0, "On Press")
+        MUI_XYAT("RX", 5, 32, 1, "On Release")
+        MUI_XYAT("G0", 114, 60, 1, " OK ")
+
         MUI_FORM(15)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Buzzer")
@@ -164,17 +218,99 @@ namespace TimerMenu {
         MUI_XYAT("RC", 5, 32, 1, "On")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
 
-        MUI_FORM(18)
+        MUI_FORM(27)
         MUI_STYLE(1)
         MUI_LABEL(5, 8, "Firmware version")
         MUI_XY("HR", 0,11)
         MUI_STYLE(0)
-        MUI_LABEL(45, 40, "1.2.0")
+        MUI_LABEL(45, 40, "1.3.0")
         MUI_XYAT("G0", 114, 60, 1, " OK ")
+
+        MUI_FORM(19)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Paper Dev")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_DATA("GP", 
+            MUI_20 "Enabled|"
+            MUI_25 "Factorial|"
+            MUI_26 "Factor|"
+            MUI_21 "Dev Time|"
+            MUI_22 "Stop Time|"
+            MUI_23 "Fixer Time|"
+            )
+        MUI_XYA("GC", 5, 25, 0)
+        MUI_XYA("GC", 5, 37, 1)
+        MUI_XYA("GC", 5, 49, 2)
+        MUI_XYA("GC", 5, 61, 3)
+
+        MUI_FORM(25)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Factorial")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYAT("RZ", 5, 22, 0, "Off")
+        MUI_XYAT("RZ", 5, 32, 1, "On")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(26)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Factor")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Value")
+        MUI_XY("Q7", 70, 24)
+        MUI_LABEL(5, 52, "Range: 2-10")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(20)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Paper Enabled")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_XYAT("RW", 5, 22, 0, "Off")
+        MUI_XYAT("RW", 5, 32, 1, "On")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(21)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Dev Time")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Minutes")
+        MUI_XY("Q1", 70, 24)
+        MUI_LABEL(5, 40, "Seconds")
+        MUI_XY("Q2", 70, 40)
+        MUI_LABEL(5, 52, "Range: 0-59")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(22)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Stop Time")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Minutes")
+        MUI_XY("Q3", 70, 24)
+        MUI_LABEL(5, 40, "Seconds")
+        MUI_XY("Q4", 70, 40)
+        MUI_LABEL(5, 52, "Range: 0-59")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
+
+        MUI_FORM(23)
+        MUI_STYLE(1)
+        MUI_LABEL(5, 8, "Fixer Time")
+        MUI_XY("HR", 0,11)
+        MUI_STYLE(0)
+        MUI_LABEL(5, 24, "Minutes")
+        MUI_XY("Q5", 70, 24)
+        MUI_LABEL(5, 40, "Seconds")
+        MUI_XY("Q6", 70, 40)
+        MUI_LABEL(5, 52, "Range: 0-59")
+        MUI_XYAT("G0", 100, 60, 19, " OK ")
     ;
 
 
-    Menu::Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s) : keypad(k), exposure(e), oled(o), enlarger(l), buzzer(b), display(d), storage(s) {}
+    Menu::Menu(Keypad& k, Exposure& e, U8G2_SSD1309_128X64_NONAME0_F_HW_I2C& o, Enlarger& l, Buzzer& b, Display& d, Storage& s, Paper& p) : keypad(k), exposure(e), oled(o), enlarger(l), buzzer(b), display(d), storage(s), paper(p) {}
     Menu::~Menu() {}
 
     void Menu::setup() {
@@ -282,8 +418,32 @@ namespace TimerMenu {
             break;
         }
 
+        if (keypad.getStartOnRelease()) {
+            startTriggerPreviousSelection = 1;
+            startTriggerCurrentSelection = 1;
+        } else {
+            startTriggerPreviousSelection = 0;
+            startTriggerCurrentSelection = 0;
+        }
+
         brightnessCurrentSelection = display.getBrightnessLevel();
         brightnessPreviousSelection = brightnessCurrentSelection;
+
+        paperEnabledCurrentSelection = paper.getEnabled() ? 1 : 0;
+        paperEnabledPreviousSelection = paperEnabledCurrentSelection;
+        paperFactorialCurrentSelection = paper.getFactorial() ? 1 : 0;
+        paperFactorialPreviousSelection = paperFactorialCurrentSelection;
+        paperFactorCurrentSelection = paper.getFactor();
+        paperFactorPreviousSelection = paperFactorCurrentSelection;
+        paperCounterToParts(paper.getDevTimeCounter(), paperDevMinutesCurrentSelection, paperDevSecondsCurrentSelection);
+        paperDevMinutesPreviousSelection = paperDevMinutesCurrentSelection;
+        paperDevSecondsPreviousSelection = paperDevSecondsCurrentSelection;
+        paperCounterToParts(paper.getStopTimeCounter(), paperStopMinutesCurrentSelection, paperStopSecondsCurrentSelection);
+        paperStopMinutesPreviousSelection = paperStopMinutesCurrentSelection;
+        paperStopSecondsPreviousSelection = paperStopSecondsCurrentSelection;
+        paperCounterToParts(paper.getFixerTimeCounter(), paperFixerMinutesCurrentSelection, paperFixerSecondsCurrentSelection);
+        paperFixerMinutesPreviousSelection = paperFixerMinutesCurrentSelection;
+        paperFixerSecondsPreviousSelection = paperFixerSecondsCurrentSelection;
     }
 
     void Menu::goToForm(uint8_t id, uint8_t pos) {
@@ -292,7 +452,7 @@ namespace TimerMenu {
     }
 
     void Menu::loop() {
-        while (event != Event::RELEASED_EXIT) {        
+        while (event != Event::RELEASED_EXIT && event != Event::LONGPRESS_EXIT) {
             keypad.tick();
             event = keypad.fetchKeypadEvent();
             if (event == Event::LONGPRESS_MENU) tone(BUZZER_PIN, 500, 100);
@@ -340,7 +500,7 @@ namespace TimerMenu {
     void Menu::update() {
         if (precisionCurrentSelection != precisionPreviousSelection) {
             exposure.setPrecision(precisionCurrentSelection);
-            exposure.reset();
+            exposure.clear();
             precisionPreviousSelection = precisionCurrentSelection;
             storage.storePrecision(precisionCurrentSelection);
             isUpdate = true;
@@ -415,6 +575,13 @@ namespace TimerMenu {
             startTimePreviousSelection = startTimeCurrentSelection;
             isUpdate = true;
         }
+        if (startTriggerCurrentSelection != startTriggerPreviousSelection) {
+            bool startOnRelease = (startTriggerCurrentSelection == 1);
+            keypad.setStartOnRelease(startOnRelease);
+            storage.storeStartTrigger(startTriggerCurrentSelection);
+            startTriggerPreviousSelection = startTriggerCurrentSelection;
+            isUpdate = true;
+        }
         if (buzzerCurrentSelection != buzzerPreviousSelection) {
             switch (buzzerCurrentSelection)
             {
@@ -462,6 +629,54 @@ namespace TimerMenu {
             }
             storage.storeLampUsage(lampUsageCurrentSelection);
             lampUsagePreviousSelection = lampUsageCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperEnabledCurrentSelection != paperEnabledPreviousSelection) {
+            paper.setEnabled(paperEnabledCurrentSelection != 0);
+            storage.storePaperEnabled(paperEnabledCurrentSelection);
+            paperEnabledPreviousSelection = paperEnabledCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperFactorialCurrentSelection != paperFactorialPreviousSelection) {
+            paper.setFactorial(paperFactorialCurrentSelection != 0);
+            storage.storePaperFactorial(paperFactorialCurrentSelection);
+            paperFactorialPreviousSelection = paperFactorialCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperFactorCurrentSelection != paperFactorPreviousSelection) {
+            paper.setFactor(paperFactorCurrentSelection);
+            storage.storePaperFactor(paperFactorCurrentSelection);
+            paperFactorPreviousSelection = paperFactorCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperDevMinutesCurrentSelection != paperDevMinutesPreviousSelection || paperDevSecondsCurrentSelection != paperDevSecondsPreviousSelection) {
+            uint16_t value = paperCounterFromParts(paperDevMinutesCurrentSelection, paperDevSecondsCurrentSelection);
+            paper.setDevTimeCounter(value);
+            storage.storePaperDevTime(value);
+            paperDevMinutesPreviousSelection = paperDevMinutesCurrentSelection;
+            paperDevSecondsPreviousSelection = paperDevSecondsCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperStopMinutesCurrentSelection != paperStopMinutesPreviousSelection || paperStopSecondsCurrentSelection != paperStopSecondsPreviousSelection) {
+            uint16_t value = paperCounterFromParts(paperStopMinutesCurrentSelection, paperStopSecondsCurrentSelection);
+            paper.setStopTimeCounter(value);
+            storage.storePaperStopTime(value);
+            paperStopMinutesPreviousSelection = paperStopMinutesCurrentSelection;
+            paperStopSecondsPreviousSelection = paperStopSecondsCurrentSelection;
+            isUpdate = true;
+        }
+
+        if (paperFixerMinutesCurrentSelection != paperFixerMinutesPreviousSelection || paperFixerSecondsCurrentSelection != paperFixerSecondsPreviousSelection) {
+            uint16_t value = paperCounterFromParts(paperFixerMinutesCurrentSelection, paperFixerSecondsCurrentSelection);
+            paper.setFixerTimeCounter(value);
+            storage.storePaperFixerTime(value);
+            paperFixerMinutesPreviousSelection = paperFixerMinutesCurrentSelection;
+            paperFixerSecondsPreviousSelection = paperFixerSecondsCurrentSelection;
             isUpdate = true;
         }
     }
